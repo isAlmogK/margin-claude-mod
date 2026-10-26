@@ -86,7 +86,7 @@ A `ui.render` hook on `AssistantMessage`. Draws the blocks in the approved style
 - Inline code drawn as chips; fenced code drawn by the engine's own `Code` element.
 - `options` as cards side by side when the width allows, stacked otherwise.
 - `ask` and the keep card only on the last text block of a reply.
-- The keep card appears once the reply is finished, not while it streams.
+- The keep card appears once its `keep` fence has closed, never half-written.
 
 `other` blocks are drawn by the surface's own `Markdown` element, unstyled but complete, between
 margin's styled blocks. If drawing throws, the hook returns `next(e)` for that whole reply: the
@@ -135,7 +135,7 @@ type Pin = {
 ```
 
 - Same label, case-insensitive, in the same project: the new pin replaces the old one. The `App`
-  pin follows the app to a new port.
+  pin follows the app to a new port. `Note` pins are matched by label and value instead.
 - Same label and value from another chat: one pin, with `createdAt` and `chat` updated.
 - Expired pins are dropped when the store is read.
 - If the store cannot be read or written, pins live in `$.state` for this chat only and one toast
@@ -149,7 +149,8 @@ A pane opened with `$.ui.open({ id: 'margin.pins', title: 'Pins' })`.
   search box and the pins.
 - Each pin: label, value (or `••••` when `secret`), Copy, Unpin. An auto-pin also has a Keep
   button that sets `expiresAt` to `null`.
-- The first time a chat adds a pin, the tab opens for 5 seconds, then folds again.
+- The first time a chat adds a pin, the tab opens, then folds again when you send your next
+  message.
 - On `mobile` there is no `Input`, so there is no search box; the pins list still shows.
 
 ### 8. Search (`hooks/search.ts`)
@@ -160,7 +161,7 @@ Typing in the search box filters the pins and searches this chat.
   left out.
 - Case-insensitive substring match. Up to 20 results, newest first.
 - Each result: the matching line cut to about 80 characters around the match, where it came from
-  (`reply 14 · 2:31 PM` or `pin`), and Copy, which copies the whole line.
+  (`reply 14`, `you 3` or `pin`), and Copy, which copies the whole line.
 
 ### 9. Commands (`hooks/commands.ts`)
 
@@ -208,7 +209,8 @@ them, so a long old chat does not flood the pins.
   - a reply whose drawing throws (falls back to `next(e)`)
   - a reply still streaming (no half cards, no keep card)
 - Pins tab tests: search, Copy, Unpin, Keep, `••••` until clicked.
-- GitHub Actions on every push: `claude plugin validate`, `tsc -p .`, `claude plugin test`.
+- GitHub Actions on every push: `claude plugin validate` and `claude plugin test`. `tsc -p .`
+  runs locally, because the API types are laid by the engine and are not in the repository.
 - By hand in VS Code before tagging a release.
 
 ## Publishing
@@ -230,15 +232,27 @@ them, so a long old chat does not flood the pins.
 - Syncing pins between computers.
 - Detecting cc-stretch or other mods that draw replies. The README tells you to turn them off.
 
-## To check while planning
+## Settled while planning
 
-These depend on the mod API in the installed Claude Code build and must be confirmed against its
-types before the plan is final:
+Checked against Claude Code 2.1.309 with a throwaway probe mod run under `claude plugin test` on
+the `vscode`, `desktop`, `terminal` and `mobile` surfaces:
 
-- How to cap line length in a transcript row (`Box` `width` as a percentage, or the row's column
-  count).
-- Which theme keys exist for the green, amber and dimmed colours.
-- How a hook knows a reply has finished (an event at turn end, or the next block arriving).
-- The session id and working directory, for `chat` and the store key.
-- Whether `ui.render` on `AssistantMessage` can return a tree on the `vscode` surface for every
-  block, including summaries (`isSummary`), which margin leaves to `next(e)`.
+- **Line length:** `Box` `width` in cells, `Math.min(e.viewport.columns, 76)`, left out when the
+  surface gives no viewport.
+- **Colours:** the theme keys `success` (green), `warning` (amber), `subtle` (dimmed), `text` and
+  `claude` (chips) draw on all four surfaces.
+- **A finished reply:** `turn.complete` carries the final text as `answer`. Pins are written
+  there, skipping subagents (`agentId`), aborted turns and refusals. The keep card and the `ask`
+  box are drawn as soon as their fence closes, which in practice is the end of the reply.
+- **Ids:** `$.session.id()` for `chat`; `session.start`'s `cwd` for the store key.
+- **Drawing:** `ui.render` on `AssistantMessage` returns a tree on all four surfaces, with
+  `Markdown`, `Code`, `Button` and nested `Text`. Summaries (`isSummary`) go to `next(e)`.
+- **The search box:** its text lives in `$.state`, not a module variable; `$.ui.invalidate` does
+  not take a pane redraw.
+
+Two small changes came out of planning:
+
+- `/pin` with plain text gets the label `Note`, and `Note` pins are matched by label and value,
+  so a second note does not replace the first.
+- `$.session.messages()` carries no times, so a search result says `reply 14` or `you 3`, not a
+  time.
