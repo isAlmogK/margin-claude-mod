@@ -15,12 +15,13 @@ export type Fake = {
   toasts: string[]
   commands: string[]
   messages: ChatRow[]
+  selection: { text: string } | undefined
   now: { value: number }
 }
 
 // Stands in for the engine beneath the plugin: every `$` call margin makes is answered here.
 export const fakeEngine = (on: TestOn, options: { isStoreDown?: boolean } = {}): Fake => {
-  const fake: Fake = { store: new Map(), copied: [], opened: [], toasts: [], commands: [], messages: [], now: { value: 1_000_000 } }
+  const fake: Fake = { store: new Map(), copied: [], opened: [], toasts: [], commands: [], messages: [], selection: undefined, now: { value: 1_000_000 } }
   on('store.get', (_, e) => {
     if (options.isStoreDown) throw new Error('store down')
     return { value: fake.store.get(e.key) }
@@ -41,6 +42,7 @@ export const fakeEngine = (on: TestOn, options: { isStoreDown?: boolean } = {}):
     fake.copied.push(e.text)
     return { value: { isCopied: true } }
   })
+  on('ui.selection', () => ({ value: fake.selection }))
   on('ui.toast', (_, e) => {
     fake.toasts.push(e.text)
     return { value: undefined }
