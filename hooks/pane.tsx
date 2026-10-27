@@ -26,6 +26,22 @@ export const pinColor = (id: string): (typeof PIN_COLORS)[number] => {
   return PIN_COLORS[hash % PIN_COLORS.length] ?? 'claude'
 }
 
+// Plain text glyphs, drawn in the card's color, so they follow the theme on every surface.
+export const PIN_GLYPHS = { link: '↗', command: '❯', secret: '✱', note: '✎' } as const
+
+const SECRET_LABEL = /pass(word)?|token|key|secret|login|api/i
+const LINK_VALUE = /^(https?|file):\/\//i
+const COMMAND_LABEL = /^(start|stop|run|deploy|build|test|install|command|cmd|script)\b/i
+const COMMAND_VALUE = /^(npm|npx|pnpm|yarn|bun|git|gh|cd|docker|make|python3?|node|claude|curl|pkill|kill)\b|^[A-Z_][A-Z0-9_]*=/
+
+// What a pin holds, first match wins: a secret before a link, so a login URL shows as a login.
+export const pinKind = (pin: MarginPin): keyof typeof PIN_GLYPHS => {
+  if (pin.secret || SECRET_LABEL.test(pin.label)) return 'secret'
+  if (LINK_VALUE.test(pin.value)) return 'link'
+  if (COMMAND_LABEL.test(pin.label) || COMMAND_VALUE.test(pin.value)) return 'command'
+  return 'note'
+}
+
 export const registerPane = (on: On): void => {
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const elements = $.ui.resolve(e)
@@ -52,7 +68,7 @@ export const registerPane = (on: On): void => {
       else $.ui.toast(PICK_FIRST)
     }
 
-    // Each pin and each hit is a bordered card: its label, the text, then its quiet buttons.
+    // Each pin and each hit is a bordered card: its label over the text on the left, its quiet buttons on the right.
     return (
       <Box flexDirection="column" alignItems="stretch" gap={1}>
         <Box flexDirection="row" gap={1}>
@@ -79,9 +95,11 @@ export const registerPane = (on: On): void => {
             : (
                 <Box flexDirection="column" alignItems="stretch" gap="lg">
                   {hits.map((hit, index) => (
-                    <Box key={`hit-card-${index}`} flexDirection="column" alignItems="flex-start" borderStyle="round" borderColor="subtle" paddingX={1}>
-                      <Text size="caption" color="subtle">{hit.where}</Text>
-                      <Text>{hit.text}</Text>
+                    <Box key={`hit-card-${index}`} flexDirection="row" justifyContent="space-between" alignItems="center" gap={2} borderStyle="round" borderColor="subtle" paddingX={1}>
+                      <Box flexDirection="column" flexGrow={1} flexShrink={1}>
+                        <Text size="caption" color="subtle">{hit.where}</Text>
+                        <Text>{hit.text}</Text>
+                      </Box>
                       <Button key={`hit-${index}`} plain dimColor label="Copy" onPress={press => { void $.ui.copy({ text: hit.copy, surface: press.surface }) }} />
                     </Box>
                   ))}
@@ -93,11 +111,17 @@ export const registerPane = (on: On): void => {
                 <Box flexDirection="column" alignItems="stretch" gap="lg">
                   {pins.map(pin => {
                     const isHidden = pin.secret && !revealed.includes(pin.id)
+                    const color = pinColor(pin.id)
                     return (
-                      <Box key={`pin-${pin.id}`} flexDirection="column" alignItems="flex-start" borderStyle="round" borderColor={pinColor(pin.id)} paddingX={1}>
-                        <Text weight="semibold">{pin.label}</Text>
-                        <Text mono>{isHidden ? '••••' : pin.value}</Text>
-                        <Box flexDirection="row" gap={2}>
+                      <Box key={`pin-${pin.id}`} flexDirection="row" justifyContent="space-between" alignItems="center" gap={2} borderStyle="round" borderColor={color} paddingX={1}>
+                        <Box flexDirection="column" flexGrow={1} flexShrink={1}>
+                          <Box flexDirection="row" gap={1}>
+                            <Text color={color}>{PIN_GLYPHS[pinKind(pin)]}</Text>
+                            <Text weight="semibold">{pin.label}</Text>
+                          </Box>
+                          <Text mono>{isHidden ? '••••' : pin.value}</Text>
+                        </Box>
+                        <Box flexDirection="row" gap={2} flexShrink={0}>
                           {isHidden ? <Button key={`show-${pin.id}`} plain dimColor label="Show" onPress={() => { void update($, revealedAtom, ids => [...ids, pin.id]) }} /> : null}
                           <Button key={`copy-${pin.id}`} plain dimColor label="Copy" onPress={press => { void $.ui.copy({ text: pin.value, surface: press.surface }) }} />
                           <Button key={`unpin-${pin.id}`} plain dimColor label="Unpin" onPress={() => { void savePins($, list => dropPin(list, pin.id)) }} />

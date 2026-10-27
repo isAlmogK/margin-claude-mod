@@ -25,7 +25,7 @@ No account, no server, no network access. It runs inside Claude Code and never w
 
 <p align="center">
   <img src="docs/images/reply-vscode.png" alt="A reply drawn by margin in the VS Code side panel: the green Keep card with Copy and Pin, the answer first and short paragraphs" width="49%">
-  <img src="docs/images/pins.png" alt="The open Pins tab: a full-width search box and each pin as a card bordered in its own color, with quiet Copy and Unpin" width="49%">
+  <img src="docs/images/pins.png" alt="The open Pins tab: a full-width search box and each pin as a card bordered in its own color, a glyph for its type before the label, and quiet Copy and Unpin on the right" width="49%">
 </p>
 
 <p align="center">
@@ -119,7 +119,7 @@ claude --plugin-dir margin-claude-mod
 
 **The Keep card.** A green card at the top of a finished reply, one row per item, each with quiet **Copy** and **Pin** buttons. Pin adds the item to your Pins, and the row then says `Pinned`. It's drawn only once the reply's `keep` block has closed, so you never see half a card while Claude is still writing.
 
-**The Pins tab.** It sits above the prompt, folded to one row with a count, and only opens when you open it. Open, it has a full-width search box and each pin as a card with space around it and a border in its own color, which it keeps for good: the label, the value under it, then quiet **Copy** and **Unpin** buttons that stay out of the way. Values that look like keys show as `••••` until you click **Show**. Select text in the chat and press **Pin selection** to pin it as a note.
+**The Pins tab.** It sits above the prompt, folded to one row with a count, and only opens when you open it. Open, it has a full-width search box and each pin as a card with space around it and a border in its own color, which it keeps for good: a small glyph for what it is (↗ link, ❯ command, ✱ login or key, ✎ note) before the label, the value under it, and quiet **Copy** and **Unpin** buttons on the right, out of the way. Values that look like keys show as `••••` until you click **Show**. Select text in the chat and press **Pin selection** to pin it as a note.
 
 **Search.** Type in the Pins tab to search your pins and every message in the current chat, newest first. Each hit is a card that says where it came from (`pin`, `reply 14`, `you 3`), with **Copy** for the whole line.
 
