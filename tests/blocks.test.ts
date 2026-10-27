@@ -78,3 +78,18 @@ test('lists keep two levels, a third is plain markdown', () => {
 test('code fences keep their language', () => {
   expect(readBlocks('```bash\nnpm run dev\n```', false)).toEqual([{ kind: 'code', language: 'bash', source: 'npm run dev' }])
 })
+
+test('a fence info string keeps only its first word as the language', () => {
+  expect(readBlocks('```c++\nint x;\n```\n\nAfter.', false)).toEqual([
+    { kind: 'code', language: 'c++', source: 'int x;' },
+    { kind: 'paragraph', text: 'After.' },
+  ])
+  expect(readBlocks('```ts title="a.ts"\nconst a = 1\n```', false)).toEqual([{ kind: 'code', language: 'ts', source: 'const a = 1' }])
+})
+
+test('windows line endings read like unix ones', () => {
+  expect(readBlocks('### Label\r\n\r\nText.', false)).toEqual([
+    { kind: 'label', text: 'Label' },
+    { kind: 'paragraph', text: 'Text.' },
+  ])
+})

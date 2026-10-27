@@ -9,7 +9,7 @@ export type Block =
   | { kind: 'keep'; lines: string[] }
   | { kind: 'other'; markdown: string }
 
-const FENCE_OPEN = /^```([\w-]*)\s*$/
+const FENCE_OPEN = /^```(.*)$/
 const FENCE_CLOSE = /^```\s*$/
 const HEADING = /^#{1,6}\s+(.*)$/
 const LIST_ITEM = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/
@@ -77,7 +77,7 @@ const list = (rows: readonly string[]): Block => {
 }
 
 export const readBlocks = (markdown: string, isFirstOfReply: boolean): Block[] => {
-  const lines = markdown.split('\n')
+  const lines = markdown.replace(/\r\n?/g, '\n').split('\n')
   const blocks: Block[] = []
   let paragraph: string[] = []
   const flush = (): void => {
@@ -96,7 +96,8 @@ export const readBlocks = (markdown: string, isFirstOfReply: boolean): Block[] =
         blocks.push({ kind: 'pending', text: lines.slice(at).join('\n') })
         break
       }
-      blocks.push(fenced(fence[1] ?? '', lines.slice(at + 1, end), lines.slice(at, end + 1).join('\n')))
+      const language = (fence[1] ?? '').trim().split(/\s/)[0] ?? ''
+      blocks.push(fenced(language, lines.slice(at + 1, end), lines.slice(at, end + 1).join('\n')))
       at = end + 1
       continue
     }
