@@ -41,13 +41,16 @@ No account, no server, no network access. It runs inside Claude Code and never w
 
 I run Claude Code in the VS Code side panel all day. When a task finishes, the reply is a wall of grey text in a column a third of the screen wide. And the one thing I need from it later, the URL of the server it started, the test login, the command to run, a decision it's waiting on, sits in the middle of a paragraph. Twenty minutes later I'm scrolling up through the whole chat to find it.
 
-Themes change the colours, not the shape of the text. Nothing in Claude Code keeps the important bits of a chat where you can find them.
+Themes change the colours, not the shape of the text. Claude Code can mark a message so you can get back to it: **bookmarks** in the VS Code extension and **Pin as chapter** in the Desktop app. That helps, but a bookmark marks the whole message. You land back on the same wall of text and still have to dig the URL out of the middle of a paragraph.
+
+margin works on the two things they don't touch. It makes the reply itself easy to read, and it keeps the **value** you need, not the message it was in: the URL, the login or the command, with Copy one click away, shared by every chat in the project and searchable. Bookmarks get you back to a message; pins hand you the line you were going to paste. They work side by side.
 
 | | Easier to read | Keeps what you need | Finds it again |
 |---|---|---|---|
 | Scrolling up | ❌ | ❌ | ◐ if you remember roughly where |
 | Asking Claude again | ◐ | ❌ | ◐ costs a turn, may get it wrong |
 | A notes file you keep yourself | ❌ | ✅ if you copy it there | ✅ |
+| Bookmarks (VS Code) · Pin as chapter (Desktop) | ❌ | ◐ the whole message, not the value | ✅ jump back to the message |
 | **margin** | ✅ **answer first, short blocks, cards** | ✅ **Keep card and Pins tab** | ✅ **search over pins and the chat** |
 
 ## How it works
