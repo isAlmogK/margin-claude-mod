@@ -7,7 +7,6 @@ import { type Engine, type On, PANE } from './state'
 
 const lastKeepAtom = atom({ plugin: 'margin', key: 'lastKeep' } as const, [] as MarginKeepItem[])
 const isOpenAtom = atom({ plugin: 'margin', key: 'isOpen' } as const, false)
-const isPeekAtom = atom({ plugin: 'margin', key: 'isPeek' } as const, false)
 
 const LABELLED = /^([^:]{1,24}):\s+(.+)$/
 
@@ -27,19 +26,19 @@ export const registerCommands = (on: On): void => {
   on('command.run', { command: 'pin' }, async ($, e) => {
     if (e.args.trim() !== '') {
       const item = readPinArgs(e.args)
-      await addItems($, [item], true)
+      await addItems($, [item])
       await $.ui.open({ id: PANE, title: 'Pins' })
       return { text: `Pinned "${item.label}".` }
     }
     const selected = await selectedNote($)
     if (selected) {
-      await addItems($, [selected], true)
+      await addItems($, [selected])
       await $.ui.open({ id: PANE, title: 'Pins' })
       return { text: 'Pinned the selected text.' }
     }
     const items = await read($, lastKeepAtom)
     if (items.length === 0) return { text: 'The last reply had nothing to keep. Try /pin Label: value.' }
-    await addItems($, items, true)
+    await addItems($, items)
     await $.ui.open({ id: PANE, title: 'Pins' })
     return { text: `Kept ${items.length} pins from the last reply.` }
   })
@@ -48,7 +47,6 @@ export const registerCommands = (on: On): void => {
     const arg = e.args.trim().toLowerCase()
     if (arg === '') {
       await loadPins($)
-      await update($, isPeekAtom, () => false)
       await update($, isOpenAtom, () => true)
       await $.ui.open({ id: PANE, title: 'Pins' })
       return { text: 'Pins tab opened.' }

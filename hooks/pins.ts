@@ -11,25 +11,21 @@ const pinsAtom = { plugin: 'margin', key: 'pins' } as const
 
 export type PinInput = { label: string; value: string; source: MarginPin['source'] }
 
-export const DAY = 24 * 60 * 60 * 1000
 export const STORE_DOWN = 'margin: pins are kept for this chat only. Its storage could not be reached.'
 
 export const storeKey = (cwd: string): string => `pins:${cwd}`
-
-export const isLive = (pin: MarginPin, now: number): boolean => pin.expiresAt === null || pin.expiresAt > now
 
 const matchKey = (pin: MarginPin): string => {
   const label = pin.label.toLowerCase()
   return label === 'note' ? `note:${pin.value}` : label
 }
 
-// Newest first. A pin with the same match key replaces the old one, keeping its id and,
-// if it was kept by hand, its permanence.
+// Newest first. A pin with the same match key replaces the old one, keeping its id.
 export const mergePins = (pins: readonly MarginPin[], incoming: readonly MarginPin[]): MarginPin[] => {
   let merged = [...pins]
   for (const pin of incoming) {
     const old = merged.find(one => matchKey(one) === matchKey(pin))
-    const next = old ? { ...pin, id: old.id, expiresAt: old.expiresAt === null ? null : pin.expiresAt } : pin
+    const next = old ? { ...pin, id: old.id } : pin
     merged = [next, ...merged.filter(one => one !== old)]
   }
   return merged
@@ -37,7 +33,7 @@ export const mergePins = (pins: readonly MarginPin[], incoming: readonly MarginP
 
 let made = 0
 
-export const makePin = (item: PinInput, chat: string, now: number, isLasting: boolean): MarginPin => {
+export const makePin = (item: PinInput, chat: string, now: number): MarginPin => {
   made += 1
   return {
     id: `${now.toString(36)}-${made.toString(36)}`,
@@ -47,9 +43,15 @@ export const makePin = (item: PinInput, chat: string, now: number, isLasting: bo
     source: item.source,
     chat,
     createdAt: now,
-    expiresAt: isLasting || item.source === 'user' ? null : now + DAY,
   }
 }
+
+// Pins saved by earlier versions carry `expiresAt`. A number there means a reply saved the pin and
+// nobody kept it, so it goes; the rest were chosen and are kept without the field.
+type StoredPin = MarginPin & { expiresAt?: number | null }
+
+const chosen = (raw: readonly StoredPin[]): MarginPin[] =>
+  raw.filter(pin => typeof pin.expiresAt !== 'number').map(({ expiresAt: _, ...pin }) => pin)
 
 async function storeFailed($: Engine): Promise<void> {
   if (await read($, isStoreDownAtom)) return
@@ -61,7 +63,7 @@ async function storedPins($: Engine): Promise<MarginPin[] | null> {
   if (await read($, isStoreDownAtom)) return null
   try {
     const raw = await $.store.get(storeKey((await read($, cwdAtom)) ?? ''))
-    return Array.isArray(raw) ? (raw as MarginPin[]) : []
+    return Array.isArray(raw) ? chosen(raw as StoredPin[]) : []
   } catch {
     await storeFailed($)
     return null
@@ -69,16 +71,14 @@ async function storedPins($: Engine): Promise<MarginPin[] | null> {
 }
 
 export async function loadPins($: Engine): Promise<void> {
-  const now = await $.clock.now()
   const pins = await storedPins($)
-  if (pins !== null) await update($, pinsAtom, () => pins.filter(pin => isLive(pin, now)))
+  if (pins !== null) await update($, pinsAtom, () => pins)
 }
 
 // The store is the source of truth, so a save keeps what other chats in the project added.
 export async function savePins($: Engine, change: (pins: MarginPin[]) => MarginPin[]): Promise<MarginPin[]> {
-  const now = await $.clock.now()
   const base = (await storedPins($)) ?? (await read($, pinsAtom)) ?? []
-  const pins = change(base).filter(pin => isLive(pin, now))
+  const pins = change(base)
   await update($, pinsAtom, () => pins)
   if (!(await read($, isStoreDownAtom))) {
     try {
@@ -97,9 +97,9 @@ export async function selectedNote($: Engine): Promise<PinInput | null> {
   return text === '' ? null : { label: 'Note', value: text, source: 'user' }
 }
 
-export async function addItems($: Engine, items: readonly PinInput[], isLasting: boolean): Promise<MarginPin[]> {
+export async function addItems($: Engine, items: readonly PinInput[]): Promise<MarginPin[]> {
   const now = await $.clock.now()
   const chat = await $.session.id()
-  const incoming = [...items].reverse().map(item => makePin(item, chat, now, isLasting))
+  const incoming = [...items].reverse().map(item => makePin(item, chat, now))
   return savePins($, pins => mergePins(pins, incoming))
 }

@@ -33,3 +33,4 @@ The folded `Pins N` button, the header row, the reply's Keep card, the pin rules
 ## As built
 
 - The card list gap is `lg`, not `md`. VS Code and the terminal draw both as one row; the desktop app sizes `lg` larger.
+- The label row and its `Goes in Nh` caption were removed the same day by [pins you choose](2026-10-27-chosen-pins-design.md), which dropped expiry; Keep went with it.

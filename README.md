@@ -19,13 +19,13 @@
 
 ---
 
-margin is a mod for Claude Code. It redraws Claude's replies so they read well in a narrow side panel: **the answer first**, short paragraphs, section labels, code as chips, choices as side-by-side cards, and the question waiting on you in its own box. The things worth keeping from a reply, like a local URL, a test login or the command to start a server, land on a **Keep** card with Copy buttons and in a **Pins** tab that every chat in the project shares.
+margin is a mod for Claude Code. It redraws Claude's replies so they read well in a narrow side panel: **the answer first**, short paragraphs, section labels, code as chips, choices as side-by-side cards, and the question waiting on you in its own box. The things worth keeping from a reply, like a local URL, a test login or the command to start a server, land on a **Keep** card. Copy them, or **Pin** the ones you want to a **Pins** tab that every chat in the project shares. Nothing is pinned unless you choose it.
 
 No account, no server, no network access. It runs inside Claude Code and never writes to your project.
 
 <p align="center">
-  <img src="docs/images/reply-vscode.png" alt="A reply drawn by margin in the VS Code side panel: the answer first, short paragraphs and the green Keep card" width="49%">
-  <img src="docs/images/pins.png" alt="The Pins tab with search, each pin with a Copy button" width="49%">
+  <img src="docs/images/reply-vscode.png" alt="A reply drawn by margin in the VS Code side panel: the green Keep card with Copy and Pin, the answer first and short paragraphs" width="49%">
+  <img src="docs/images/pins.png" alt="The open Pins tab: a full-width search box and each pin as a bordered card with quiet Copy and Unpin" width="49%">
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@ No account, no server, no network access. It runs inside Claude Code and never w
 <p align="center"><sub>Illustrations drawn from margin's layout code. Screenshots from a live session replace them after the hand check.</sub></p>
 
 > [!NOTE]
-> **Status: alpha.** Everything in v0.1 is built and covered by 62 tests, and `claude plugin validate` passes. The hand check in VS Code and the Desktop app is still running. Watch or ⭐ the repo to follow along, and [open an issue](https://github.com/isAlmogK/margin-claude-mod/issues) if something looks off.
+> **Status: alpha.** Everything in v0.1 is built and covered by 68 tests, and `claude plugin validate` passes. The hand check in VS Code and the Desktop app is still running. Watch or ⭐ the repo to follow along, and [open an issue](https://github.com/isAlmogK/margin-claude-mod/issues) if something looks off.
 
 ## Why I'm building this
 
@@ -53,14 +53,14 @@ Themes change the colours, not the shape of the text. Nothing in Claude Code kee
 ## How it works
 
 ```
-a note asks Claude to answer first and mark keepers ─▶ margin draws the reply ─▶ keepers go to Pins ─▶ you search and copy
+a note asks Claude to answer first and mark keepers ─▶ margin draws the reply ─▶ you pin the keepers you want ─▶ you search and copy
 ```
 
 | | What it does |
 |---|---|
 | 📝 **Note** | One short note in Claude's instructions (about 145 words per chat): lead with the answer, keep paragraphs short, and put choices, questions and things worth keeping in `options`, `ask` and `keep` blocks |
 | 🖋️ **Reply** | Draws every reply in margin's style. Anything it doesn't style (tables, HTML) is drawn by Claude Code's own Markdown, so a reply is never blank. If drawing fails, the normal drawing takes over |
-| 📌 **Keep** | Items from the reply's `keep` block go to the Keep card and to Pins. With no `keep` block, margin still pins a local app URL and a test password it finds |
+| 📌 **Keep** | Items from the reply's `keep` block go on the Keep card, each with **Copy** and **Pin**. With no `keep` block, `/pin` alone can still pin a local app URL and a test password it finds. Nothing is pinned until you choose it |
 | 🔍 **Pins and search** | One Pins tab per project folder, shared by every chat in it. Type to search your pins and the whole current chat |
 
 Claude marks things with three fenced blocks, which margin draws as cards:
@@ -114,22 +114,22 @@ claude --plugin-dir margin-claude-mod
 
 **The reply.** The answer first, as one brighter line. Short paragraphs with space between them and a capped line length. `###` headings become small labels. Inline code becomes chips, numbered steps keep their own numbers, and file links show just the file name. Choices from an `options` block become cards side by side when there's room and stacked when there isn't, with downsides in amber and Claude's pick marked. A question from an `ask` block sits in an amber **Your call** box at the end.
 
-**The Keep card.** A green card at the top of a finished reply, one row per item, each with **Copy**. It's drawn only once the reply's `keep` block has closed, so you never see half a card while Claude is still writing.
+**The Keep card.** A green card at the top of a finished reply, one row per item, each with quiet **Copy** and **Pin** buttons. Pin adds the item to your Pins, and the row then says `Pinned`. It's drawn only once the reply's `keep` block has closed, so you never see half a card while Claude is still writing.
 
-**The Pins tab.** It sits above the prompt and stays folded to one row with a count. The first time a chat keeps something, it opens on its own and folds again when you send your next message. Open, it has a full-width search box and each pin as a card: the label on top, the value under it, then **Copy** and **Unpin**. A pin Claude made also says when it goes (`Goes in 23h`) with a dim **Keep** to hold on to it. Values that look like keys show as `••••` until you click **Show**. Select text in the chat and press **Pin selection** to pin it as a note.
+**The Pins tab.** It sits above the prompt, folded to one row with a count, and only opens when you open it. Open, it has a full-width search box and each pin as a bordered card with space around it: the label, the value under it, then quiet **Copy** and **Unpin** buttons that stay out of the way. Values that look like keys show as `••••` until you click **Show**. Select text in the chat and press **Pin selection** to pin it as a note.
 
-**Search.** Type in the Pins tab to search your pins and every message in the current chat, newest first. Each hit says where it came from (`pin`, `reply 14`, `you 3`) and has **Copy** for the whole line.
+**Search.** Type in the Pins tab to search your pins and every message in the current chat, newest first. Each hit is a card that says where it came from (`pin`, `reply 14`, `you 3`), with **Copy** for the whole line.
 
 ## Commands
 
 | Command | Does |
 |---|---|
 | `/pin Label: value` | Pins a value with a label. Plain text gets the label `Note` |
-| `/pin` | Pins the text you selected with the mouse as a note; with nothing selected, keeps the last reply's items for good |
+| `/pin` | Pins the text you selected with the mouse as a note; with nothing selected, pins the last reply's keep items |
 | `/margin` | Opens the Pins tab |
 | `/margin off` · `/margin on` | Turns the reply drawing and the note to Claude off or on, kept across sessions. Pins and `/pin` keep working |
 
-Pins Claude makes last 24 hours. Pins you add, or keep with **Keep** or `/pin`, stay until you remove them. A new pin with the same label replaces the old one, so the `App` pin follows your app to its new port.
+Every pin is one you chose, and it stays until you remove it. A new pin with the same label replaces the old one, so the `App` pin follows your app to its new port.
 
 ## Privacy
 
@@ -141,7 +141,7 @@ Everything stays on your machine. margin makes no network calls and never writes
 
 **What margin adds:** one note to Claude's instructions, about 145 words per chat. `/margin off` removes it.
 
-**Keys and tokens are never pinned automatically.** Values that look like real credentials (`sk-…`, `ghp_…`, `AKIA…`, JWTs, PEM blocks, long random strings) are dropped from Claude's `keep` items and the pattern check. If you pin one yourself, it's shown as `••••` until you click **Show**, and search masks them in chat hits too.
+**Nothing is pinned automatically, and keys never reach the Keep card.** Values that look like real credentials (`sk-…`, `ghp_…`, `AKIA…`, JWTs, PEM blocks, long random strings) are dropped from Claude's `keep` items and the pattern check. If you pin one yourself, it's shown as `••••` until you click **Show**, and search masks them in chat hits too.
 
 ## Requirements
 
@@ -177,6 +177,12 @@ Tables, HTML and lists nested deeper than two levels go to Claude Code's own Mar
 </details>
 
 <details>
+<summary><b>How is this different from bookmarks and chapters?</b></summary>
+
+Claude Code's own **bookmarks** (VS Code) and **Pin as chapter** (the Desktop app) mark a whole message so you can jump back to it. margin's pins hold the value itself, like a URL, a login or a command, with Copy one click away, and every chat in the project shares them. Use bookmarks to find a message again and pins for what you'll paste. They work side by side.
+</details>
+
+<details>
 <summary><b>Where do pins live, and who sees them?</b></summary>
 
 In Claude Code's local mod store on your machine, under your project folder. Every chat in that folder sees the same pins. Nobody else does, and they never sync between computers.
@@ -185,7 +191,7 @@ In Claude Code's local mod store on your machine, under your project folder. Eve
 <details>
 <summary><b>Does it slow Claude down?</b></summary>
 
-No. Drawing happens as the reply streams in, and pins are saved after the turn ends. The note adds about 145 words to each chat's instructions.
+No. Drawing happens as the reply streams in, and a reply's keep items are read after the turn ends. The note adds about 145 words to each chat's instructions.
 </details>
 
 ## Roadmap
@@ -198,7 +204,7 @@ No. Drawing happens as the reply streams in, and pins are saved after the turn e
 
 ## Docs
 
-- 📘 [How it works today](docs/margin.md): the pieces, pin rules, the peek and the engine rules as the code stands
+- 📘 [How it works today](docs/margin.md): the pieces, pin rules, opening the tab and the engine rules as the code stands
 - 🧭 [Design spec](docs/superpowers/specs/2026-10-27-margin-design.md): the why, the decisions and the behaviour, with an "As built" section
 - 🗂️ [Implementation plan](docs/superpowers/plans/2026-10-27-margin.md): the task-by-task plan it was built from
 

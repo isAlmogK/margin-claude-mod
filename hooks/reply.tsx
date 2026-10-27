@@ -1,13 +1,16 @@
 import { atom, read } from 'claude-code'
 
+import type { MarginPin } from '../types'
 import type { Block } from './blocks'
 import { readBlocks } from './blocks'
 import { fromKeepLines } from './keep'
+import { addItems } from './pins'
 import { isSecret } from './secrets'
-import type { On } from './state'
+import { type On, PANE } from './state'
 
 // The state scan reads references written in the file that uses them.
 const isOffAtom = atom({ plugin: 'margin', key: 'isOff' } as const, false)
+const pinsAtom = atom({ plugin: 'margin', key: 'pins' } as const, [] as MarginPin[])
 
 export const LINE_MAX = 76
 export const WIDE_MIN = 70
@@ -45,6 +48,8 @@ export const registerReply = (on: On): void => {
     const keep = blocks
       .flatMap(block => (block.kind === 'keep' ? fromKeepLines(block.lines) : []))
       .filter(item => !isSecret(item.value))
+    const pins = keep.length === 0 ? [] : await read($, pinsAtom)
+    const isPinned = (label: string, value: string): boolean => pins.some(pin => pin.label === label && pin.value === value)
 
     const draw = (block: Block) => {
       switch (block.kind) {
@@ -105,7 +110,10 @@ export const registerReply = (on: On): void => {
               <Box flexDirection="row" gap={1}>
                 <Text color="subtle">{item.label}</Text>
                 <Text mono>{item.value}</Text>
-                <Button key={`keep-copy-${index}`} label="Copy" onPress={press => { void $.ui.copy({ text: item.value, surface: press.surface }) }} />
+                <Button key={`keep-copy-${index}`} plain dimColor label="Copy" onPress={press => { void $.ui.copy({ text: item.value, surface: press.surface }) }} />
+                {isPinned(item.label, item.value)
+                  ? <Text size="caption" color="subtle">Pinned</Text>
+                  : <Button key={`keep-pin-${index}`} plain dimColor label="Pin" onPress={() => { void addItems($, [item]).then(() => $.ui.open({ id: PANE, title: 'Pins' })) }} />}
               </Box>
             ))}
           </Box>

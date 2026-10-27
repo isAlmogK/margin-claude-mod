@@ -20,9 +20,9 @@ test('/pin text: a labelled pin or a note, kept until removed', async ($, on) =>
   await startSession($)
   expect(await runCommand($, 'pin', 'Staging: token goes in GitHub secrets')).toEqual({ text: 'Pinned "Staging".' })
   expect(await runCommand($, 'pin', 'rotate the token monthly')).toEqual({ text: 'Pinned "Note".' })
-  expect(stored(fake).map(pin => [pin.label, pin.source, pin.expiresAt])).toEqual([
-    ['Note', 'user', null],
-    ['Staging', 'user', null],
+  expect(stored(fake).map(pin => [pin.label, pin.source])).toEqual([
+    ['Note', 'user'],
+    ['Staging', 'user'],
   ])
 })
 
@@ -34,13 +34,13 @@ test('/pin opens the Pins tab', async ($, on) => {
   expect(fake.opened).toContain('margin-pins')
 })
 
-test('/pin alone keeps the last reply\'s items for good', async ($, on) => {
+test('/pin alone pins the last reply\'s items', async ($, on) => {
   const fake = fakeEngine(on)
   await startSession($)
   expect(await runCommand($, 'pin')).toEqual({ text: 'The last reply had nothing to keep. Try /pin Label: value.' })
   await finishTurn($, SERVER_REPLY)
   expect(await runCommand($, 'pin')).toEqual({ text: 'Kept 4 pins from the last reply.' })
-  expect(stored(fake).every(pin => pin.expiresAt === null)).toBe(true)
+  expect(stored(fake).map(pin => pin.label)).toEqual(['App', 'Password', 'Start', 'Stop'])
 })
 
 test('/pin alone pins the selected text before the last reply\'s items', async ($, on) => {
@@ -49,7 +49,7 @@ test('/pin alone pins the selected text before the last reply\'s items', async (
   await finishTurn($, SERVER_REPLY)
   fake.selection = { text: 'Any Level\nworks on every plan' }
   expect(await runCommand($, 'pin')).toEqual({ text: 'Pinned the selected text.' })
-  expect(stored(fake)[0]).toMatchObject({ label: 'Note', value: 'Any Level\nworks on every plan', expiresAt: null })
+  expect(stored(fake)[0]).toMatchObject({ label: 'Note', value: 'Any Level\nworks on every plan', source: 'user' })
   expect(fake.opened).toContain('margin-pins')
 })
 

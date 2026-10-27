@@ -1,9 +1,8 @@
 import { expect, test } from 'claude-code/testing'
 
-import { DAY, storeKey } from '../hooks/pins'
+import { storeKey } from '../hooks/pins'
 import type { MarginPin } from '../types'
-import { type Fake, fakeEngine, finishTurn, PROJECT, runCommand, startSession, submit } from './kit'
-import { SERVER_REPLY } from './samples'
+import { type Fake, fakeEngine, PROJECT, startSession } from './kit'
 
 const PANE = {
   plugin: 'margin',
@@ -17,9 +16,9 @@ const key = ['gh', 'p_', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78'].join('')
 const seed = (fake: Fake): void => {
   const base = { chat: 'chat-0', createdAt: 0 }
   const pins: MarginPin[] = [
-    { ...base, id: 'app', label: 'App', value: 'http://localhost:5199', secret: false, source: 'claude', expiresAt: fake.now.value + DAY },
-    { ...base, id: 'token', label: 'Token', value: key, secret: true, source: 'user', expiresAt: null },
-    { ...base, id: 'note', label: 'Note', value: 'rotate the staging token', secret: false, source: 'user', expiresAt: null },
+    { ...base, id: 'app', label: 'App', value: 'http://localhost:5199', secret: false, source: 'claude' },
+    { ...base, id: 'token', label: 'Token', value: key, secret: true, source: 'user' },
+    { ...base, id: 'note', label: 'Note', value: 'rotate the staging token', secret: false, source: 'user' },
   ]
   fake.store.set(storeKey(PROJECT), pins)
 }
@@ -37,7 +36,7 @@ test('a project with pins opens the tab folded, with a count', async ($, on) => 
   await ui.unmount()
 })
 
-test('open: copy, show a secret, keep and unpin', async ($, on) => {
+test('open: copy, show a secret and unpin', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
   await startSession($)
@@ -51,10 +50,6 @@ test('open: copy, show a secret, keep and unpin', async ($, on) => {
 
   await ui.press({ key: 'copy-app' })
   expect(fake.copied).toEqual(['http://localhost:5199'])
-
-  await ui.press({ key: 'keep-app' })
-  expect(stored(fake).find(pin => pin.id === 'app')?.expiresAt).toBe(null)
-  expect(await ui.find({ key: 'keep-app' })).toBeUndefined()
 
   await ui.press({ key: 'unpin-note' })
   expect(stored(fake).map(pin => pin.id)).toEqual(['app', 'token'])
@@ -77,7 +72,7 @@ const holds = (node: Drawn, key: string): boolean => walk(node).some(one => keyO
 
 const textOf = (node: Drawn): string[] => walk(node).flatMap(one => (one.children ?? []).filter((child): child is string => typeof child === 'string'))
 
-test('a pin is a bordered card: label row, then the value, then its actions', async ($, on) => {
+test('a pin is a bordered card: label, then the value, then its actions', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
   await startSession($)
@@ -86,16 +81,14 @@ test('a pin is a bordered card: label row, then the value, then its actions', as
   const card = walk(await ui.drawn()).find(node => keyOf(node) === 'pin-app')
   expect(card?.props).toMatchObject({ flexDirection: 'column', borderStyle: 'round', paddingX: 1 })
   const parts = (card?.children ?? []) as Drawn[]
-  expect(parts.map(part => part.type)).toEqual(['Box', 'Text', 'Box'])
-  expect(parts[0]?.props).toMatchObject({ flexDirection: 'row', justifyContent: 'space-between' })
-  expect(textOf(parts[0] as Drawn)).toEqual(['App', 'Goes in 24h'])
+  expect(parts.map(part => part.type)).toEqual(['Text', 'Text', 'Box'])
+  expect(textOf(parts[0] as Drawn)).toEqual(['App'])
   expect(holds(parts[2] as Drawn, 'copy-app')).toBe(true)
   expect(holds(parts[2] as Drawn, 'unpin-app')).toBe(true)
-  expect(holds(parts[2] as Drawn, 'keep-app')).toBe(true)
   await ui.unmount()
 })
 
-test('the cards sit apart, and a permanent pin has no expiry caption', async ($, on) => {
+test('the cards sit apart, and no pin says when it goes', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
   await startSession($)
@@ -104,7 +97,8 @@ test('the cards sit apart, and a permanent pin has no expiry caption', async ($,
   const drawn = walk(await ui.drawn())
   const list = drawn.find(node => node.type === 'Box' && ((node.children ?? []) as Drawn[]).some(child => keyOf(child) === 'pin-app'))
   expect(list?.props).toMatchObject({ flexDirection: 'column', gap: 'lg' })
-  expect(await ui.findAll({ type: 'Text', text: /^Goes in/ })).toHaveLength(1)
+  expect(await ui.findAll({ type: 'Text', text: /^Goes in/ })).toHaveLength(0)
+  expect(await ui.find({ key: 'keep-app' })).toBeUndefined()
   const note = drawn.find(node => keyOf(node) === 'pin-note')
   expect(textOf(((note?.children ?? []) as Drawn[])[0] as Drawn)).toEqual(['Note'])
   await ui.unmount()
@@ -116,7 +110,7 @@ test('every action is a quiet text control', async ($, on) => {
   await startSession($)
   const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
   await ui.press({ key: 'open' })
-  for (const key of ['copy-app', 'unpin-app', 'keep-app', 'show-token', 'copy-note', 'unpin-note']) {
+  for (const key of ['copy-app', 'unpin-app', 'show-token', 'copy-note', 'unpin-note']) {
     expect((await ui.find({ key }))?.props).toMatchObject({ plain: true, dimColor: true })
   }
   await ui.unmount()
@@ -156,7 +150,7 @@ test('Pin selection pins what you selected, or says to select first', async ($, 
   expect(fake.toasts).toEqual(['Select text in the chat first, then press Pin selection.'])
   fake.selection = { text: '  deploy with npm run ship  ' }
   await ui.press({ key: 'pin-selection' })
-  expect(stored(fake)[0]).toMatchObject({ label: 'Note', value: 'deploy with npm run ship', source: 'user', expiresAt: null })
+  expect(stored(fake)[0]).toMatchObject({ label: 'Note', value: 'deploy with npm run ship', source: 'user' })
   await ui.unmount()
 })
 
@@ -190,36 +184,13 @@ test('on mobile there is no search box but the pins still show', async ($, on) =
   await ui.unmount()
 })
 
-test('a peek folds again on your next message', async ($, on) => {
-  fakeEngine(on)
+test('Fold folds the tab back to its count', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
   await startSession($)
-  await finishTurn($, SERVER_REPLY)
   const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
-  expect(await ui.find({ key: 'fold' })).toBeDefined()
-  await submit($, 'thanks')
-  expect(await ui.find({ key: 'open' })).toBeDefined()
-  await ui.unmount()
-})
-
-test('opening the tab yourself ends the peek', async ($, on) => {
-  fakeEngine(on)
-  await startSession($)
-  await finishTurn($, SERVER_REPLY)
-  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
-  await ui.press({ key: 'fold' })
   await ui.press({ key: 'open' })
-  await submit($, 'next')
-  expect(await ui.find({ key: 'fold' })).toBeDefined()
-  await ui.unmount()
-})
-
-test('the first peek leaves a tab you opened yourself open', async ($, on) => {
-  fakeEngine(on)
-  await startSession($)
-  await runCommand($, 'margin')
-  await finishTurn($, SERVER_REPLY)
-  await submit($, 'thanks')
-  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
-  expect(await ui.find({ key: 'fold' })).toBeDefined()
+  await ui.press({ key: 'fold' })
+  expect((await ui.find({ key: 'open' }))?.props.label).toBe('Pins 3')
   await ui.unmount()
 })
