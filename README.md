@@ -116,7 +116,7 @@ claude --plugin-dir margin-claude-mod
 
 **The Keep card.** A green card at the top of a finished reply, one row per item, each with **Copy**. It's drawn only once the reply's `keep` block has closed, so you never see half a card while Claude is still writing.
 
-**The Pins tab.** It sits above the prompt and stays folded to one row with a count. The first time a chat keeps something, it opens on its own and folds again when you send your next message. Open, it has a search box and each pin as `Label  value  Copy`, with **Keep** on pins that would expire and **Unpin** on all of them. Values that look like keys show as `••••` until you click **Show**.
+**The Pins tab.** It sits above the prompt and stays folded to one row with a count. The first time a chat keeps something, it opens on its own and folds again when you send your next message. Open, it has a full-width search box and each pin as a card: the label on top, the value under it, then **Copy** and **Unpin**. A pin Claude made also says when it goes (`Goes in 23h`) with a dim **Keep** to hold on to it. Values that look like keys show as `••••` until you click **Show**. Select text in the chat and press **Pin selection** to pin it as a note.
 
 **Search.** Type in the Pins tab to search your pins and every message in the current chat, newest first. Each hit says where it came from (`pin`, `reply 14`, `you 3`) and has **Copy** for the whole line.
 
@@ -125,7 +125,7 @@ claude --plugin-dir margin-claude-mod
 | Command | Does |
 |---|---|
 | `/pin Label: value` | Pins a value with a label. Plain text gets the label `Note` |
-| `/pin` | Keeps the last reply's items for good |
+| `/pin` | Pins the text you selected with the mouse as a note; with nothing selected, keeps the last reply's items for good |
 | `/margin` | Opens the Pins tab |
 | `/margin off` · `/margin on` | Turns the reply drawing and the note to Claude off or on, kept across sessions. Pins and `/pin` keep working |
 

@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 
 import type { MarginKeepItem } from '../types'
-import { addItems, loadPins, type PinInput } from './pins'
+import { addItems, loadPins, type PinInput, selectedNote } from './pins'
 import { setOff } from './settings'
 import { type Engine, type On, PANE } from './state'
 
@@ -19,7 +19,7 @@ export const readPinArgs = (args: string): PinInput => {
 }
 
 export async function declareCommands($: Engine): Promise<void> {
-  await $.command.register({ name: 'pin', description: "Pin text, or the last reply's keep items, to margin's Pins tab", argumentHint: '[Label: value]' })
+  await $.command.register({ name: 'pin', description: "Pin text, the text you selected, or the last reply's keep items, to margin's Pins tab", argumentHint: '[Label: value]' })
   await $.command.register({ name: 'margin', description: "Open margin's Pins tab, or turn its reply drawing off or on", argumentHint: '[off|on]' })
 }
 
@@ -30,6 +30,12 @@ export const registerCommands = (on: On): void => {
       await addItems($, [item], true)
       await $.ui.open({ id: PANE, title: 'Pins' })
       return { text: `Pinned "${item.label}".` }
+    }
+    const selected = await selectedNote($)
+    if (selected) {
+      await addItems($, [selected], true)
+      await $.ui.open({ id: PANE, title: 'Pins' })
+      return { text: 'Pinned the selected text.' }
     }
     const items = await read($, lastKeepAtom)
     if (items.length === 0) return { text: 'The last reply had nothing to keep. Try /pin Label: value.' }

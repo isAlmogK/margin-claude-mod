@@ -43,6 +43,16 @@ test('/pin alone keeps the last reply\'s items for good', async ($, on) => {
   expect(stored(fake).every(pin => pin.expiresAt === null)).toBe(true)
 })
 
+test('/pin alone pins the selected text before the last reply\'s items', async ($, on) => {
+  const fake = fakeEngine(on)
+  await startSession($)
+  await finishTurn($, SERVER_REPLY)
+  fake.selection = { text: 'Any Level\nworks on every plan' }
+  expect(await runCommand($, 'pin')).toEqual({ text: 'Pinned the selected text.' })
+  expect(stored(fake)[0]).toMatchObject({ label: 'Note', value: 'Any Level\nworks on every plan', expiresAt: null })
+  expect(fake.opened).toContain('margin-pins')
+})
+
 test('/margin opens the tab; off and on switch the reply drawing and the note', async ($, on) => {
   const fake = fakeEngine(on)
   await startSession($)

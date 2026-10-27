@@ -61,6 +61,73 @@ test('open: copy, show a secret, keep and unpin', async ($, on) => {
   await ui.unmount()
 })
 
+type Drawn = { type: string; key?: string; props?: Record<string, unknown>; children?: unknown[] }
+
+const walk = (node: unknown, seen: Drawn[] = []): Drawn[] => {
+  if (node === null || typeof node !== 'object') return seen
+  const drawn = node as Drawn
+  seen.push(drawn)
+  const children = drawn.children ?? (drawn.props?.children as unknown[] | undefined) ?? []
+  for (const child of Array.isArray(children) ? children : [children]) walk(child, seen)
+  return seen
+}
+
+const keyOf = (node: Drawn): unknown => node.key ?? node.props?.key
+const holds = (node: Drawn, key: string): boolean => walk(node).some(one => keyOf(one) === key)
+
+test('a pin is a card: label on top, then the value, then its buttons', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
+  await startSession($)
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  await ui.press({ key: 'open' })
+  const card = walk(await ui.drawn()).find(node => keyOf(node) === 'pin-app')
+  expect(card?.props?.flexDirection).toBe('column')
+  const parts = (card?.children ?? []) as Drawn[]
+  expect(parts.map(part => part.type)).toEqual(['Text', 'Text', 'Box'])
+  expect(walk(parts[0]).some(node => (node.children ?? []).includes('App'))).toBe(true)
+  expect(holds(parts[2] as Drawn, 'copy-app')).toBe(true)
+  expect(holds(parts[2] as Drawn, 'unpin-app')).toBe(true)
+  await ui.unmount()
+})
+
+test('a pin from Claude says when it goes, and Keep is a dim control', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
+  await startSession($)
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  await ui.press({ key: 'open' })
+  expect(await ui.find({ type: 'Text', text: /^Goes in 24h$/ })).toBeDefined()
+  expect((await ui.find({ key: 'keep-app' }))?.props.dimColor).toBe(true)
+  expect(await ui.findAll({ type: 'Text', text: /^Goes in/ })).toHaveLength(1)
+  await ui.unmount()
+})
+
+test('the search box spans the tab', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
+  await startSession($)
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  await ui.press({ key: 'open' })
+  const wrap = walk(await ui.drawn()).find(node => node.type === 'Box' && ((node.children ?? []) as Drawn[]).some(child => keyOf(child) === 'q'))
+  expect(wrap?.props?.width).toBe('100%')
+  await ui.unmount()
+})
+
+test('Pin selection pins what you selected, or says to select first', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
+  await startSession($)
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  await ui.press({ key: 'open' })
+  await ui.press({ key: 'pin-selection' })
+  expect(fake.toasts).toEqual(['Select text in the chat first, then press Pin selection.'])
+  fake.selection = { text: '  deploy with npm run ship  ' }
+  await ui.press({ key: 'pin-selection' })
+  expect(stored(fake)[0]).toMatchObject({ label: 'Note', value: 'deploy with npm run ship', source: 'user', expiresAt: null })
+  await ui.unmount()
+})
+
 test('typing searches the pins and this chat', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)

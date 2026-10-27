@@ -90,6 +90,13 @@ export async function savePins($: Engine, change: (pins: MarginPin[]) => MarginP
   return pins
 }
 
+// What the person last selected with the mouse, as a Note; null with nothing selected or on a
+// surface that reports no selection.
+export async function selectedNote($: Engine): Promise<PinInput | null> {
+  const text = (await $.ui.selection())?.text.trim() ?? ''
+  return text === '' ? null : { label: 'Note', value: text, source: 'user' }
+}
+
 export async function addItems($: Engine, items: readonly PinInput[], isLasting: boolean): Promise<MarginPin[]> {
   const now = await $.clock.now()
   const chat = await $.session.id()

@@ -15,9 +15,9 @@ Current truth for the `margin` mod. The design and its history: [the spec](super
 | `hooks/secrets.ts` | Known key formats plus long high-entropy tokens; a word with two or more `/` is a path, not a token. |
 | `hooks/pins.ts` | Pin rules and the store. Key `pins:<project folder>`. The store is the source of truth on every save. |
 | `hooks/turn.ts` | On `turn.complete` of the main thread: keep items to pins, and the peek the first time a chat keeps items. |
-| `hooks/pane.tsx` | The Pins tab (`margin-pins`). |
+| `hooks/pane.tsx` | The Pins tab (`margin-pins`). The search box sits in a `width="100%"` Box, since an Input takes no width of its own. Each pin and search hit is a left-aligned column card: label, value, then a row of buttons (Show, Copy, Unpin; on an expiring pin a `Goes in Nh` caption and a dim plain Keep). **Pin selection** in the header pins the selection. |
 | `hooks/search.ts` | Pins first, then this chat newest first, 20 results. Only messages with text are numbered (tool-result rows are skipped), and a word that looks like a key shows as `••••` (Copy keeps the raw line). |
-| `hooks/commands.ts` | `/pin` (pins, then opens the Pins tab as it was, folded or open) and `/margin`. |
+| `hooks/commands.ts` | `/pin` (pins, then opens the Pins tab as it was, folded or open) and `/margin`. `/pin` alone pins the mouse selection first, and the last reply's keep items only when nothing is selected. |
 | `hooks/settings.ts` | `/margin off` and `on`, store key `settings`. |
 
 ## Pin rules
@@ -25,6 +25,8 @@ Current truth for the `margin` mod. The design and its history: [the spec](super
 - Same label (case-insensitive) replaces the old pin and keeps its id. `Note` pins match on label and value.
 - Pins from Claude or the pattern check expire 24 hours after they were made; `/pin`, `/pin` alone and Keep make them permanent.
 - A `/pin` value that looks like a key is stored with `secret: true` and drawn as `••••` until Show.
+- A selection is pinned as a permanent `Note`, trimmed, line breaks kept (`selectedNote` in `hooks/pins.ts`, from `$.ui.selection()`). A surface that reports no selection gets a toast from Pin selection, and `/pin` falls back to the keep items.
+- There is no right-click menu: the engine has no hook for one.
 
 ## The peek
 

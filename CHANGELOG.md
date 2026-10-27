@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Pins are cards: the label on top, the value under it, then Copy and Unpin. A pin Claude made says when it goes, with a dim Keep.
+- The search box spans the Pins tab.
+- Select text and press **Pin selection**, or run `/pin` alone, to pin it as a note.
+
 ## 0.1.0
 
 - Draws Claude's replies for a narrow panel: the answer first, short paragraphs, section labels, code chips, option cards and a "Your call" box.
