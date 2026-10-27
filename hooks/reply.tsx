@@ -12,31 +12,35 @@ const isOffAtom = atom({ plugin: 'margin', key: 'isOff' } as const, false)
 export const LINE_MAX = 76
 export const WIDE_MIN = 70
 
-const RUN = /(`[^`]+`|\*\*[^*]+\*\*)/
+// Inline runs: `code`, **bold**, [label](target), *italic* and _italic_.
+const RUN = /(`[^`]+`|\*\*[^*]+\*\*|\[[^\]]+\]\([^)\s]+\)|(?<![*\w])\*[^*\s](?:[^*]*[^*\s])?\*(?![*\w])|(?<![_\w])_[^_\s](?:[^_]*[^_\s])?_(?![_\w]))/
+const LINK = /^\[([^\]]+)\]\(([^)\s]+)\)$/
+const ITALIC = /^([*_])[^*_\s](?:.*[^\s])?\1$/
+const LINKABLE = /^(https?|file):/i
 
 export const registerReply = (on: On): void => {
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
     if (e.props.isSummary === true || (await read($, isOffAtom))) return next(e)
 
-    const { Box, Text, Button, Code, Markdown } = $.ui.resolve(e)
+    const { Box, Text, Button, Code, Link, Markdown } = $.ui.resolve(e)
     const blocks = readBlocks(e.props.text, e.props.isFirstOfReply)
     const columns = e.viewport?.columns
     const isWide = (columns ?? 0) >= WIDE_MIN
 
-    // Inline code becomes a chip, **bold** stays bold; everything else is plain text.
-    const runs = (text: string) =>
-      text
-        .split(RUN)
-        .filter(part => part !== '')
-        .map(part =>
-          part.length > 2 && part.startsWith('`') && part.endsWith('`') ? (
-            <Text color="claude" mono>{part.slice(1, -1)}</Text>
-          ) : part.length > 4 && part.startsWith('**') && part.endsWith('**') ? (
-            <Text weight="semibold">{part.slice(2, -2)}</Text>
-          ) : (
-            part
-          ),
-        )
+    // Inline code becomes a chip, **bold** stays bold, *italic* italic; a web or file link
+    // is a Link and any other link target shows only its label. The rest is plain text.
+    const run = (part: string) => {
+      if (part.length > 2 && part.startsWith('`') && part.endsWith('`')) return <Text color="claude" mono>{part.slice(1, -1)}</Text>
+      if (part.length > 4 && part.startsWith('**') && part.endsWith('**')) return <Text weight="semibold">{part.slice(2, -2)}</Text>
+      const link = LINK.exec(part)
+      if (link) {
+        const [, label = '', href = ''] = link
+        return LINKABLE.test(href) ? <Link href={href} label={label} /> : <Text color="claude">{label}</Text>
+      }
+      if (ITALIC.test(part)) return <Text italic>{part.slice(1, -1)}</Text>
+      return part
+    }
+    const runs = (text: string) => text.split(RUN).filter(part => part !== '').map(run)
 
     const keep = blocks
       .flatMap(block => (block.kind === 'keep' ? fromKeepLines(block.lines) : []))
@@ -53,9 +57,10 @@ export const registerReply = (on: On): void => {
         case 'list':
           return (
             <Box flexDirection="column">
-              {block.items.map((item, index) => (
-                <Text>{block.isOrdered && !item.startsWith('  ') ? `${index + 1}. ` : '• '}{runs(item.trim())}</Text>
-              ))}
+              {block.items.map(item => {
+                const line = <Text>{/\d/.test(item.marker) ? `${item.marker} ` : '• '}{runs(item.text)}</Text>
+                return item.level === 1 ? <Box paddingLeft={2}>{line}</Box> : line
+              })}
             </Box>
           )
         case 'code':
@@ -69,7 +74,7 @@ export const registerReply = (on: On): void => {
                   {option.isLean ? <Text size="caption" color="success">I lean here</Text> : null}
                   {option.subtitle === '' ? null : <Text size="caption" color="subtle">{option.subtitle}</Text>}
                   {option.points.map(point =>
-                    point.isDownside ? <Text color="warning">• {point.text}</Text> : <Text>• {runs(point.text)}</Text>,
+                    point.isDownside ? <Text color="warning">• {runs(point.text)}</Text> : <Text>• {runs(point.text)}</Text>,
                   )}
                 </Box>
               ))}

@@ -70,3 +70,41 @@ test('summaries and margin off get the normal drawing', async ($, on) => {
   expect((await off.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
   await off.unmount()
 })
+
+test('lists draw their own numbers and indent nested items', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  for (const surface of SURFACES) {
+    const ui = await $.ui.mount({ ...reply('Steps.\n\n1. one\n   - one a\n2. two\n\n3. three'), surface })
+    expect(await ui.find({ type: 'Text', text: /^1\. one$/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /^2\. two$/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /^3\. three$/ })).toBeDefined()
+    const nested = (await ui.findAll({ type: 'Box' })).find(box => box.props.paddingLeft === 2)
+    expect(nested?.text ?? JSON.stringify(nested?.children)).toMatch(/• one a/)
+    await ui.unmount()
+  }
+})
+
+test('links draw their label: a Link for web and file targets, plain label otherwise', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  for (const surface of SURFACES) {
+    const ui = await $.ui.mount({ ...reply('See [the docs](https://example.com/docs) and [reply.tsx](hooks/reply.tsx#L57), *really*.'), surface })
+    const link = await ui.find({ type: 'Link' })
+    expect(link?.props.href).toBe('https://example.com/docs')
+    expect(link?.props.label).toBe('the docs')
+    expect(await ui.find({ type: 'Text', text: /^reply\.tsx$/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /\]\(/ })).toBeUndefined()
+    expect((await ui.find({ type: 'Text', text: /^really$/ }))?.props.italic).toBe(true)
+    await ui.unmount()
+  }
+})
+
+test('downside points get chips and bold like the others', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  const ui = await $.ui.mount({ ...reply('```options\nA | a\n- breaks `npm test`\n```'), surface: 'vscode' })
+  expect(await ui.find({ type: 'Text', text: /^npm test$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /`/ })).toBeUndefined()
+  await ui.unmount()
+})

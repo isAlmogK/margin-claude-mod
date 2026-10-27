@@ -70,9 +70,47 @@ test('the lead is only the short first paragraph of a reply', () => {
 })
 
 test('lists keep two levels, a third is plain markdown', () => {
-  expect(readBlocks('- one\n  - one a\n- two', false)).toEqual([{ kind: 'list', items: ['one', '  one a', 'two'], isOrdered: false }])
-  expect(readBlocks('1. one\n2. two', false)).toEqual([{ kind: 'list', items: ['one', 'two'], isOrdered: true }])
+  expect(readBlocks('- one\n  - one a\n- two', false)).toEqual([
+    {
+      kind: 'list',
+      items: [
+        { text: 'one', level: 0, marker: '-' },
+        { text: 'one a', level: 1, marker: '-' },
+        { text: 'two', level: 0, marker: '-' },
+      ],
+      isOrdered: false,
+    },
+  ])
+  expect(readBlocks('1. one\n2. two', false)).toEqual([
+    { kind: 'list', items: [{ text: 'one', level: 0, marker: '1.' }, { text: 'two', level: 0, marker: '2.' }], isOrdered: true },
+  ])
   expect(kinds('- one\n  - two\n    - three', false)).toEqual(['other'])
+})
+
+test('a nested ordered list keeps its own numbers', () => {
+  const [list] = readBlocks('1. one\n2. two\n   - two a\n3. three', false)
+  expect(list?.kind === 'list' ? list.items.filter(item => item.level === 0).map(item => item.marker) : []).toEqual(['1.', '2.', '3.'])
+})
+
+test('a blank line between items of the same kind does not end the list', () => {
+  expect(readBlocks('1. a\n\n2. b', false)).toEqual([
+    { kind: 'list', items: [{ text: 'a', level: 0, marker: '1.' }, { text: 'b', level: 0, marker: '2.' }], isOrdered: true },
+  ])
+  expect(kinds('1. a\n\n- b', false)).toEqual(['list', 'list'])
+})
+
+test('a code fence inside a list item is a code block, not item text', () => {
+  expect(readBlocks('1. Install deps:\n   ```bash\n   npm install\n   ```', false)).toEqual([
+    { kind: 'list', items: [{ text: 'Install deps:', level: 0, marker: '1.' }], isOrdered: true },
+    { kind: 'code', language: 'bash', source: 'npm install' },
+  ])
+})
+
+test('a fence closes only on a run of its own length', () => {
+  expect(readBlocks('````md\n```ts\nconst a = 1\n```\n````', false)).toEqual([
+    { kind: 'code', language: 'md', source: '```ts\nconst a = 1\n```' },
+  ])
+  expect(readBlocks('```foo```', false)).toEqual([{ kind: 'paragraph', text: '```foo```' }])
 })
 
 test('code fences keep their language', () => {
