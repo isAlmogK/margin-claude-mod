@@ -6,7 +6,6 @@ export type MarginPin = {
   source: 'claude' | 'pattern' | 'user'
   chat: string
   createdAt: number
-  expiresAt: number | null
 }
 
 export type MarginKeepItem = {
@@ -21,8 +20,6 @@ declare module 'claude-code' {
       pins: MarginPin[]
       query: string
       isOpen: boolean
-      isPeek: boolean
-      hasPeeked: boolean
       revealed: string[]
       isStoreDown: boolean
       isOff: boolean

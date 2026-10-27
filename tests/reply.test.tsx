@@ -1,7 +1,9 @@
 import { expect, test } from 'claude-code/testing'
 
+import { storeKey } from '../hooks/pins'
 import { SETTINGS_KEY } from '../hooks/settings'
-import { fakeEngine, startSession, SURFACES } from './kit'
+import type { MarginPin } from '../types'
+import { fakeEngine, PROJECT, startSession, SURFACES } from './kit'
 import { OPTIONS_REPLY, SERVER_REPLY, STREAMING_REPLY, TABLE_REPLY } from './samples'
 
 const reply = (text: string, extra: { isSummary?: true } = {}) =>
@@ -21,6 +23,22 @@ test('a reply with a keep fence: card first, lead, label, chips', async ($, on) 
     await ui.unmount()
   }
   expect(fake.copied).toEqual(SURFACES.map(() => 'demo-password-1'))
+})
+
+test('the Keep card pins an item you choose, then says Pinned', async ($, on) => {
+  const fake = fakeEngine(on)
+  await startSession($)
+  const ui = await $.ui.mount({ ...reply(SERVER_REPLY), surface: 'vscode' })
+  expect((await ui.find({ key: 'keep-pin-0' }))?.props).toMatchObject({ plain: true, dimColor: true })
+  expect((await ui.find({ key: 'keep-copy-0' }))?.props).toMatchObject({ plain: true, dimColor: true })
+  await ui.press({ key: 'keep-pin-0' })
+  const pins = (fake.store.get(storeKey(PROJECT)) as MarginPin[] | undefined) ?? []
+  expect(pins.map(pin => [pin.label, pin.value, pin.source])).toEqual([['App', 'http://localhost:5199', 'claude']])
+  expect(fake.opened).toContain('margin-pins')
+  expect(await ui.find({ key: 'keep-pin-0' })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /^Pinned$/ })).toBeDefined()
+  expect(await ui.find({ key: 'keep-pin-1' })).toBeDefined()
+  await ui.unmount()
 })
 
 test('options become cards and the question gets its own box', async ($, on) => {

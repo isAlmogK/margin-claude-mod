@@ -5,7 +5,7 @@ import type { MarginPin } from '../types'
 
 const pin = (over: Partial<MarginPin>): MarginPin => ({
   id: 'p', label: 'Staging', value: 'token in GitHub secrets', secret: false, source: 'user',
-  chat: 'c', createdAt: 0, expiresAt: null, ...over,
+  chat: 'c', createdAt: 0, ...over,
 })
 
 const messages = [
