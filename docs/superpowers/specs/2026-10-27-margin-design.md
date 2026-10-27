@@ -143,7 +143,7 @@ type Pin = {
 
 ### 7. The Pins tab (`hooks/pane.tsx`)
 
-A pane opened with `$.ui.open({ id: 'margin.pins', title: 'Pins' })`.
+A pane opened with `$.ui.open({ id: 'margin-pins', title: 'Pins' })`.
 
 - margin draws its own folded state: one row, `Pins 6` and a button to open. Open, it shows the
   search box and the pins.
