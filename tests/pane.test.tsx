@@ -101,3 +101,15 @@ test('a peek folds again on your next message', async ($, on) => {
   expect(await ui.find({ key: 'open' })).toBeDefined()
   await ui.unmount()
 })
+
+test('opening the tab yourself ends the peek', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  await finishTurn($, SERVER_REPLY)
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  await ui.press({ key: 'fold' })
+  await ui.press({ key: 'open' })
+  await submit($, 'next')
+  expect(await ui.find({ key: 'fold' })).toBeDefined()
+  await ui.unmount()
+})

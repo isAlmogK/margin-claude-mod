@@ -35,7 +35,7 @@ export const registerPane = (on: On): void => {
     if (!(await read($, isOpenAtom))) {
       return (
         <Box flexDirection="row">
-          <Button key="open" plain label={`Pins ${pins.length}`} onPress={() => { void update($, isOpenAtom, () => true) }} />
+          <Button key="open" plain label={`Pins ${pins.length}`} onPress={() => { void update($, isPeekAtom, () => false); void update($, isOpenAtom, () => true) }} />
         </Box>
       )
     }
@@ -50,7 +50,7 @@ export const registerPane = (on: On): void => {
       <Box flexDirection="column" gap={1}>
         <Box flexDirection="row" gap={1}>
           <Text weight="semibold">Pins {pins.length}</Text>
-          <Button key="fold" plain label="Fold" onPress={() => { void update($, isOpenAtom, () => false) }} />
+          <Button key="fold" plain label="Fold" onPress={() => { void update($, isPeekAtom, () => false); void update($, isOpenAtom, () => false) }} />
         </Box>
         {'Input' in elements ? (
           <elements.Input
