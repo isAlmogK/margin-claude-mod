@@ -1,5 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
+import { PIN_COLORS, pinColor } from '../hooks/pane'
 import { storeKey } from '../hooks/pins'
 import type { MarginPin } from '../types'
 import { type Fake, fakeEngine, PROJECT, startSession } from './kit'
@@ -104,6 +105,28 @@ test('the cards sit apart, and no pin says when it goes', async ($, on) => {
   await ui.unmount()
 })
 
+test('each pin card has its own border color, fixed by its id', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
+  await startSession($)
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  await ui.press({ key: 'open' })
+  const drawn = walk(await ui.drawn())
+  const colors = ['app', 'token', 'note'].map(id => drawn.find(node => keyOf(node) === `pin-${id}`)?.props?.borderColor)
+  expect(colors).toEqual(['app', 'token', 'note'].map(pinColor))
+  expect(new Set(colors).size).toBeGreaterThan(1)
+  await ui.unmount()
+})
+
+test('pinColor always gives a palette color, the same one for the same id', () => {
+  const ids = Array.from({ length: 50 }, (_, index) => `mh${index.toString(36)}-${index}`)
+  expect(ids.every(id => PIN_COLORS.includes(pinColor(id)))).toBe(true)
+  expect(ids.map(pinColor)).toEqual(ids.map(pinColor))
+  expect(new Set(ids.map(pinColor)).size).toBe(PIN_COLORS.length)
+  expect(PIN_COLORS).not.toContain('success')
+  expect(PIN_COLORS).not.toContain('error')
+})
+
 test('every action is a quiet text control', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
@@ -135,7 +158,7 @@ test('a search hit is a bordered card with a quiet Copy', async ($, on) => {
   await ui.press({ key: 'open' })
   await ui.input({ key: 'q', text: 'staging', kind: 'change' })
   const card = walk(await ui.drawn()).find(node => keyOf(node) === 'hit-card-0')
-  expect(card?.props).toMatchObject({ flexDirection: 'column', borderStyle: 'round', paddingX: 1 })
+  expect(card?.props).toMatchObject({ flexDirection: 'column', borderStyle: 'round', borderColor: 'subtle', paddingX: 1 })
   expect((await ui.find({ key: 'hit-0' }))?.props).toMatchObject({ plain: true, dimColor: true })
   await ui.unmount()
 })

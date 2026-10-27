@@ -16,6 +16,16 @@ const dropPin = (pins: MarginPin[], id: string): MarginPin[] => pins.filter(pin 
 
 export const PICK_FIRST = 'Select text in the chat first, then press Pin selection.'
 
+// Theme keys, so a card follows the person's theme. Green belongs to the reply's Keep card and red reads as a failure.
+export const PIN_COLORS = ['claude', 'suggestion', 'planMode', 'autoAccept', 'warning', 'ide'] as const
+
+// A pin keeps its color for good: it comes from the id, not the card's place in the list.
+export const pinColor = (id: string): (typeof PIN_COLORS)[number] => {
+  let hash = 0
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  return PIN_COLORS[hash % PIN_COLORS.length] ?? 'claude'
+}
+
 export const registerPane = (on: On): void => {
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const elements = $.ui.resolve(e)
@@ -84,7 +94,7 @@ export const registerPane = (on: On): void => {
                   {pins.map(pin => {
                     const isHidden = pin.secret && !revealed.includes(pin.id)
                     return (
-                      <Box key={`pin-${pin.id}`} flexDirection="column" alignItems="flex-start" borderStyle="round" borderColor="subtle" paddingX={1}>
+                      <Box key={`pin-${pin.id}`} flexDirection="column" alignItems="flex-start" borderStyle="round" borderColor={pinColor(pin.id)} paddingX={1}>
                         <Text weight="semibold">{pin.label}</Text>
                         <Text mono>{isHidden ? '••••' : pin.value}</Text>
                         <Box flexDirection="row" gap={2}>
