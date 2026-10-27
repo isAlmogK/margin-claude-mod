@@ -1,13 +1,32 @@
 import { expect, test } from 'claude-code/testing'
 
 import { storeKey } from '../hooks/pins'
+import { GUTTER } from '../hooks/reply'
 import { SETTINGS_KEY } from '../hooks/settings'
 import type { MarginPin } from '../types'
 import { fakeEngine, PROJECT, startSession, SURFACES } from './kit'
-import { OPTIONS_REPLY, SERVER_REPLY, STREAMING_REPLY, TABLE_REPLY } from './samples'
+import { OPEN_REPLY, OPTIONS_REPLY, SERVER_REPLY, STREAMING_REPLY, TABLE_REPLY } from './samples'
 
 const reply = (text: string, extra: { isSummary?: true } = {}) =>
   ({ plugin: 'margin', component: 'AssistantMessage', props: { text, isFirstOfReply: true, ...extra }, viewport: { columns: 100, rows: 40 } }) as const
+
+type Drawn = { type: string; key?: string; props?: Record<string, unknown>; hover?: Record<string, unknown>; children?: unknown[] }
+
+const walk = (node: unknown, seen: Drawn[] = []): Drawn[] => {
+  if (node === null || typeof node !== 'object') return seen
+  const drawn = node as Drawn
+  seen.push(drawn)
+  const children = drawn.children ?? (drawn.props?.children as unknown[] | undefined) ?? []
+  for (const child of Array.isArray(children) ? children : [children]) walk(child, seen)
+  return seen
+}
+
+const keyOf = (node: Drawn): unknown => node.key ?? node.props?.key
+const rowOf = (nodes: Drawn[], key: string): Drawn | undefined => nodes.find(node => keyOf(node) === key)
+const gutterOf = (row: Drawn | undefined): Drawn | undefined => {
+  const gutter = walk(row).find(node => node.type === 'Box' && node.props?.width === GUTTER)
+  return walk(gutter).find(node => node !== gutter && node.type === 'Box')
+}
 
 test('a reply with a keep fence: card first, lead, label, chips', async ($, on) => {
   const fake = fakeEngine(on)
@@ -124,5 +143,58 @@ test('downside points get chips and bold like the others', async ($, on) => {
   const ui = await $.ui.mount({ ...reply('```options\nA | a\n- breaks `npm test`\n```'), surface: 'vscode' })
   expect(await ui.find({ type: 'Text', text: /^npm test$/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /`/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('a reply spans the whole panel, however wide', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  for (const columns of [60, 100, 160]) {
+    const ui = await $.ui.mount({ ...reply(OPTIONS_REPLY), viewport: { columns, rows: 40 }, surface: 'desktop' })
+    const root = (await ui.drawn()) as { type: string; props?: Record<string, unknown> }
+    expect(root.type).toBe('Box')
+    expect(root.props).toMatchObject({ width: '100%', flexDirection: 'column' })
+    await ui.unmount()
+  }
+})
+
+test('Copy and Pin show on hover where there is a pointer, always elsewhere', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  for (const surface of SURFACES) {
+    const ui = await $.ui.mount({ ...reply(OPEN_REPLY), surface })
+    const nodes = walk(await ui.drawn())
+    for (const key of ['keep-row-0', 'keep-row-1', 'open-row-0']) {
+      const inner = gutterOf(rowOf(nodes, key))
+      expect(inner).toBeDefined()
+      // A drawn node carries its hover beside its props.
+      const isHidden = surface === 'desktop' || surface === 'vscode'
+      expect(inner?.props?.display).toBe(isHidden ? 'none' : undefined)
+      expect(inner?.hover).toEqual(isHidden ? { display: 'flex' } : undefined)
+    }
+    await ui.unmount()
+  }
+})
+
+test('labels share one column width', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  const ui = await $.ui.mount({ ...reply(OPEN_REPLY), surface: 'desktop' })
+  const nodes = walk(await ui.drawn())
+  const widths = ['keep-row-0', 'keep-row-1'].map(key => walk(rowOf(nodes, key))[1]?.props?.width)
+  expect(widths).toEqual(['Cost per request'.length + 1, 'Cost per request'.length + 1])
+  await ui.unmount()
+})
+
+test('what is still open is listed and pins as a Still open note', async ($, on) => {
+  const fake = fakeEngine(on)
+  await startSession($)
+  const ui = await $.ui.mount({ ...reply(OPEN_REPLY), surface: 'vscode' })
+  expect(await ui.find({ type: 'Text', text: /^Still open$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /Not checked in the app/ })).toBeDefined()
+  await ui.press({ key: 'open-pin-0' })
+  const pins = (fake.store.get(storeKey(PROJECT)) as MarginPin[] | undefined) ?? []
+  expect(pins.map(pin => [pin.label, pin.value])).toEqual([['Still open', 'Not checked in the app']])
+  expect(await ui.find({ key: 'open-pin-0' })).toBeUndefined()
   await ui.unmount()
 })

@@ -22,6 +22,11 @@ test('Note pins are matched by label and value', () => {
   expect(mergePins([note('n1', 'a')], [note('n2', 'b')]).map(one => one.value)).toEqual(['b', 'a'])
 })
 
+test('Still open pins are matched by label and value', () => {
+  const open = (id: string, value: string) => pin({ id, label: 'Still open', value })
+  expect(mergePins([open('o1', 'a')], [open('o2', 'b')]).map(one => one.value)).toEqual(['b', 'a'])
+})
+
 test('a pin has no expiry', () => {
   const made = makePin({ label: 'Note', value: 'u', source: 'user' }, 'c', 100)
   expect(made).toMatchObject({ chat: 'c', createdAt: 100 })
