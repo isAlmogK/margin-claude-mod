@@ -1,6 +1,6 @@
 # Keep card: hover buttons and a Still open section
 
-**Status:** Approved (2026-10-27)
+**Status:** Implemented (2026-10-27)
 
 A Keep card with five items drew ten Copy and Pin buttons, each pair right after its value, so they sat at a
 different place on every row and broke up the reading. The card also had no place for what is still open after a
@@ -61,3 +61,9 @@ filtering, `/pin` alone, the Pins tab.
   `Still open` pin; existing Copy and Pin presses still work.
 - `tests/pins.test.ts`: two `Still open` pins with different values are both kept.
 - `tests/note.test.ts`: the keep rule mentions `- ` lines for what is still open.
+
+## As built
+
+- An open item's text gets the same inline drawing as the rest of the reply (code chips, bold, links).
+- The note's word cap in `tests/note.test.ts` rose from 170 to 190: the note is now about 180 words, about 240
+  tokens.

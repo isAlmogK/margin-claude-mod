@@ -5,6 +5,8 @@
 - Replies fill the whole panel instead of stopping at 76 columns.
 - The Keep card gets a line for each takeaway in a reply, numbers and facts included, not just URLs, logins and commands.
 - The README has a token cost FAQ.
+- The Keep card lines labels and values up in two columns, and its **Copy** and **Pin** show only while your mouse is over a row (desktop and VS Code); in the terminal and on mobile they sit in a quiet column on the right.
+- A **Still open** section on the Keep card lists what Claude left unfinished, from `- ` lines in its `keep` block, each with **Pin**.
 
 ## 0.2.0 (2026-10-27)
 
