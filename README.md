@@ -5,7 +5,7 @@ Readable replies, pins and chat search for Claude Code, made for the VS Code sid
 ![A reply drawn by margin](docs/images/reply.png)
 
 - **Replies you can skim.** The answer first, short paragraphs, section labels, code as chips, choices as side-by-side cards, and the question you need to answer in its own box.
-- **Keep from this reply.** URLs, test logins and commands from a reply land on a card with Copy buttons, and in the Pins tab.
+- **Keep from this reply.** Whatever Claude lists in a reply's `keep` block (URLs, logins, commands) lands on a card with Copy buttons, and in the Pins tab. Without a `keep` block, margin picks up only a local app URL (localhost, 127.0.0.1 or 0.0.0.0 with a port) and a test password.
 - **Pins per project.** Every chat in the same folder sees the same pins. Pins Claude makes last a day; yours stay until you remove them.
 - **Search.** Type in the Pins tab to search your pins and the whole current chat.
 

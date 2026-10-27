@@ -14,7 +14,7 @@ Current truth for the `margin` mod. The design and its history: [the spec](super
 | `hooks/keep.ts` | Keep items from the `keep` fence; with no fence, a `localhost:<port>` URL and a password value. Secrets dropped. |
 | `hooks/secrets.ts` | Known key formats plus long high-entropy tokens. |
 | `hooks/pins.ts` | Pin rules and the store. Key `pins:<project folder>`. The store is the source of truth on every save. |
-| `hooks/turn.ts` | On `turn.complete` of the main thread: keep items to pins, and the first-pin peek. |
+| `hooks/turn.ts` | On `turn.complete` of the main thread: keep items to pins, and the peek the first time a chat keeps items. |
 | `hooks/pane.tsx` | The Pins tab (`margin-pins`). |
 | `hooks/search.ts` | Pins first, then this chat newest first, 20 results. |
 | `hooks/commands.ts` | `/pin` and `/margin`. |
@@ -28,7 +28,7 @@ Current truth for the `margin` mod. The design and its history: [the spec](super
 
 ## The peek
 
-The first time a project gets a pin, the Pins tab opens on its own (a peek). A peeked tab folds on your next message. Opening or folding it yourself, with its buttons or `/margin`, ends the peek, so it stays as you left it.
+The first time a chat keeps items from a reply, the Pins tab opens on its own (a peek). This is tracked per chat (`hasPeeked`, not stored), so it also happens in a project that already has pins. A peeked tab folds on your next message. Opening or folding it yourself, with its buttons or `/margin`, ends the peek, so it stays as you left it.
 
 ## Engine rules
 
