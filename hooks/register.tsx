@@ -1,6 +1,7 @@
 import { read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
+import { declareCommands, registerCommands } from './commands'
 import { registerNote } from './note'
 import { registerPane } from './pane'
 import { loadPins } from './pins'
@@ -18,6 +19,7 @@ export const register: Register = on => {
     await update($, cwdAtom, () => e.cwd)
     await loadSettings($)
     await loadPins($)
+    await declareCommands($)
     if (((await read($, pinsAtom)) ?? []).length > 0) void $.ui.open({ id: PANE, title: 'Pins' })
     return next(e)
   })
@@ -26,4 +28,5 @@ export const register: Register = on => {
   registerReply(on)
   registerTurn(on)
   registerPane(on)
+  registerCommands(on)
 }
