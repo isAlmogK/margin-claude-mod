@@ -1,0 +1,11 @@
+{
+  "name": "margin",
+  "version": "0.1.0",
+  "description": "Readable replies, pins and chat search for Claude Code, made for the VS Code side panel.",
+  "author": { "name": "isAlmogK", "url": "https://github.com/isAlmogK" },
+  "homepage": "https://github.com/isAlmogK/margin-claude-mod",
+  "repository": "https://github.com/isAlmogK/margin-claude-mod",
+  "license": "MIT",
+  "keywords": ["readability", "pins", "search", "vscode"],
+  "types": "./types/index.d.ts"
+}

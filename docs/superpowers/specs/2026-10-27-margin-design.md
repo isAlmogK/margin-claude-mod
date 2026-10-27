@@ -1,15 +1,15 @@
 # margin: readable replies and pins for Claude Code
 
-**Status:** Draft (2026-10-27)
+**Status:** Implemented (2026-10-27)
 
 margin is an open-source Claude Code mod. It redraws Claude's replies so they are easier to read,
 pulls the things worth keeping out of each reply (a URL, a test login, a start command, a
 decision) into a Pins tab, and adds a search box over the current chat. It is built for the VS
 Code side panel first and also works in the Claude desktop app and the terminal.
 
-- Repository: `isAlmogK/claude-margin` (public, MIT)
+- Repository: `isAlmogK/margin-claude-mod` (public, MIT)
 - Mod name: `margin`, so the commands are `/margin` and `/pin`
-- Install line: `/plugin install margin --marketplace isAlmogK/claude-margin`
+- Install lines: `/plugin marketplace add isAlmogK/margin-claude-mod`, then `/plugin install margin@margin`
 
 ## Why
 
@@ -143,7 +143,7 @@ type Pin = {
 
 ### 7. The Pins tab (`hooks/pane.tsx`)
 
-A pane opened with `$.ui.open({ id: 'margin.pins', title: 'Pins' })`.
+A pane opened with `$.ui.open({ id: 'margin-pins', title: 'Pins' })`.
 
 - margin draws its own folded state: one row, `Pins 6` and a button to open. Open, it shows the
   search box and the pins.
@@ -215,7 +215,7 @@ them, so a long old chat does not flood the pins.
 
 ## Publishing
 
-- Public repository `isAlmogK/claude-margin`, MIT license.
+- Public repository `isAlmogK/margin-claude-mod`, MIT license.
 - `.claude-plugin/marketplace.json` listing the one mod, `margin`.
 - README: the before/after images, the install line, a note to turn cc-stretch off first, the
   commands, and a "What margin can reach" section: Claude's replies in this chat, its own pin
@@ -256,3 +256,21 @@ Two small changes came out of planning:
   so a second note does not replace the first.
 - `$.session.messages()` carries no times, so a search result says `reply 14` or `you 3`, not a
   time.
+
+## As built
+
+Built on 2026-10-27 and checked by 62 tests on the `vscode`, `desktop`, `terminal` and `mobile` surfaces. It differs from this spec in these places:
+
+- **Repository and install.** The repository is `isAlmogK/margin-claude-mod`. The marketplace is named `margin`, so the install is `/plugin marketplace add isAlmogK/margin-claude-mod`, then `/plugin install margin@margin`.
+- **Pins tab id.** `margin-pins`. `ui.open` ids allow only letters, digits, `_` and `-`.
+- **State.** Each file declares its own state references, because the loader refuses atoms imported from another file. Helpers that take `$` and live in another file are `function` declarations.
+- **Fences.** A fence is a run of three or more backticks and closes only on a run of the same length. Its info string may hold anything but a backtick, and its first word is the language. Windows (CRLF) line endings are normalised.
+- **Lists.** Each item keeps its own number. Two levels are drawn, the second indented. Blank lines between items keep the list whole. A fence indented under an item is drawn as its own code block.
+- **Links.** `http:`, `https:` and `file:` links are drawn as links. Any other target, such as a relative file path, shows only its label.
+- **The peek.** It happens the first time each chat keeps items, even in a project that already has pins. It never folds a tab you opened yourself, and opening or folding the tab yourself ends the peek.
+- **Ask box and keep card.** Drawn on any text block that has them, not only the last one. The keep card comes only from a `keep` fence; pattern-check items go to the Pins tab only.
+- **`/pin`** also opens the Pins tab.
+- **Off.** While margin is off, Claude's `keep` items and the pattern check still make pins; only the drawing and the note switch off.
+- **Search.** Hits are numbered over messages that have text, so tool-result rows don't count. A word that looks like a key shows as `••••` in a chat hit; Copy keeps the raw line.
+- **Secrets.** A word with two or more `/` is a path and is never treated as a high-entropy token.
+- **Not yet checked.** The `.catch` fallback to the normal drawing has no test, and the hand check in VS Code and the Desktop app was still running when this was written.
