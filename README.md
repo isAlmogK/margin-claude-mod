@@ -32,6 +32,8 @@ No account, no server, no network access. It runs inside Claude Code and never w
   <img src="docs/images/desktop.png" alt="margin in the Claude Desktop app: options as side-by-side cards and the amber Your call box" width="98%">
 </p>
 
+<p align="center"><sub>Illustrations drawn from margin's layout code. Screenshots from a live session replace them after the hand check.</sub></p>
+
 > [!NOTE]
 > **Status: alpha.** Everything in v0.1 is built and covered by 62 tests, and `claude plugin validate` passes. The hand check in VS Code and the Desktop app is still running. Watch or ⭐ the repo to follow along, and [open an issue](https://github.com/isAlmogK/margin-claude-mod/issues) if something looks off.
 
