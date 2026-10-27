@@ -126,3 +126,15 @@ test('downside points get chips and bold like the others', async ($, on) => {
   expect(await ui.find({ type: 'Text', text: /`/ })).toBeUndefined()
   await ui.unmount()
 })
+
+test('a reply spans the whole panel, however wide', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  for (const columns of [60, 100, 160]) {
+    const ui = await $.ui.mount({ ...reply(OPTIONS_REPLY), viewport: { columns, rows: 40 }, surface: 'desktop' })
+    const root = (await ui.drawn()) as { type: string; props?: Record<string, unknown> }
+    expect(root.type).toBe('Box')
+    expect(root.props).toMatchObject({ width: '100%', flexDirection: 'column' })
+    await ui.unmount()
+  }
+})

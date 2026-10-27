@@ -12,7 +12,6 @@ import { type On, PANE } from './state'
 const isOffAtom = atom({ plugin: 'margin', key: 'isOff' } as const, false)
 const pinsAtom = atom({ plugin: 'margin', key: 'pins' } as const, [] as MarginPin[])
 
-export const LINE_MAX = 76
 export const WIDE_MIN = 70
 
 // Inline runs: `code`, **bold**, [label](target), *italic* and _italic_.
@@ -27,8 +26,7 @@ export const registerReply = (on: On): void => {
 
     const { Box, Text, Button, Code, Link, Markdown } = $.ui.resolve(e)
     const blocks = readBlocks(e.props.text, e.props.isFirstOfReply)
-    const columns = e.viewport?.columns
-    const isWide = (columns ?? 0) >= WIDE_MIN
+    const isWide = (e.viewport?.columns ?? 0) >= WIDE_MIN
 
     // Inline code becomes a chip, **bold** stays bold, *italic* italic; a web or file link
     // is a Link and any other link target shows only its label. The rest is plain text.
@@ -102,7 +100,7 @@ export const registerReply = (on: On): void => {
     }
 
     return (
-      <Box flexDirection="column" gap={1} {...(columns === undefined ? {} : { width: Math.min(columns, LINE_MAX) })}>
+      <Box flexDirection="column" gap={1} width="100%">
         {keep.length === 0 ? null : (
           <Box flexDirection="column" borderStyle="round" borderColor="success" paddingX={1}>
             <Text size="caption" color="success">Keep from this reply</Text>

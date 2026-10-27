@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Replies fill the whole panel instead of stopping at 76 columns.
+
 ## 0.2.0 (2026-10-27)
 
 - Each pin shows a small glyph for what it is (↗ link, ❯ command, ✱ login or key, ✎ note) in its card's color, and the card's buttons sit under the value in the bottom right corner.
