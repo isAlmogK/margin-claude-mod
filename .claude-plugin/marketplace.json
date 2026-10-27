@@ -1,11 +1,14 @@
 {
-  "name": "claude-margin",
-  "owner": { "name": "isAlmogK" },
+  "name": "margin",
+  "description": "Readable replies, pins and chat search for Claude Code, made for the VS Code side panel",
+  "owner": {
+    "name": "Almog Koren"
+  },
   "plugins": [
     {
       "name": "margin",
       "source": "./",
-      "description": "Readable replies, pins and chat search for Claude Code, made for the VS Code side panel."
+      "description": "Claude's replies drawn answer first, with a Keep card and a Pins tab for the URLs, logins and commands you need later"
     }
   ]
 }

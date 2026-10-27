@@ -1,54 +1,72 @@
-# margin for Claude Code
+<div align="center">
 
-Readable replies, pins and chat search for Claude Code, made for the VS Code side panel.
+# 📌 margin
 
-![A reply drawn by margin](docs/images/reply.png)
+### Claude's replies, easy to read. What matters in them, pinned.
 
-- **Replies you can skim.** The answer first, short paragraphs, section labels, code as chips, choices as side-by-side cards, and the question you need to answer in its own box.
-- **Keep from this reply.** Whatever Claude lists in a reply's `keep` block (URLs, logins, commands) lands on a card with Copy buttons, and in the Pins tab. Without a `keep` block, margin picks up only a local app URL (localhost, 127.0.0.1 or 0.0.0.0 with a port) and a test password.
-- **Pins per project.** Every chat in the same folder sees the same pins. Pins Claude makes last a day; yours stay until you remove them.
-- **Search.** Type in the Pins tab to search your pins and the whole current chat.
+**The login you need is 40 messages up. margin keeps it one click away.**
 
-![The Pins tab](docs/images/pins.png)
+[![CI](https://github.com/isAlmogK/margin-claude-mod/actions/workflows/ci.yml/badge.svg)](https://github.com/isAlmogK/margin-claude-mod/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-%E2%89%A52.1.309-d97757.svg)](#requirements)
+[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](#roadmap)
+[![Surfaces](https://img.shields.io/badge/surfaces-VS%20Code%20%C2%B7%20Desktop%20%C2%B7%20terminal-blueviolet.svg)](#requirements)
+[![Sponsor](https://img.shields.io/badge/sponsor-%E2%99%A5-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/isAlmogK)
 
-## Install
+[Why](#why-im-building-this) · [How it works](#how-it-works) · [Install](#install) · [What you see](#what-you-see) · [Commands](#commands) · [Privacy](#privacy) · [Requirements](#requirements) · [FAQ](#faq) · [Roadmap](#roadmap) · [Docs](#docs) · [Sponsor](#sponsor) · [About me](#about-me)
 
-At the prompt of a terminal session:
+</div>
+
+---
+
+margin is a mod for Claude Code. It redraws Claude's replies so they read well in a narrow side panel: **the answer first**, short paragraphs, section labels, code as chips, choices as side-by-side cards, and the question waiting on you in its own box. The things worth keeping from a reply, like a local URL, a test login or the command to start a server, land on a **Keep** card with Copy buttons and in a **Pins** tab that every chat in the project shares.
+
+No account, no server, no network access. It runs inside Claude Code and never writes to your project.
+
+<p align="center">
+  <img src="docs/images/reply-vscode.png" alt="A reply drawn by margin in the VS Code side panel: the answer first, short paragraphs and the green Keep card" width="49%">
+  <img src="docs/images/pins.png" alt="The Pins tab with search, each pin with a Copy button" width="49%">
+</p>
+
+<p align="center">
+  <img src="docs/images/desktop.png" alt="margin in the Claude Desktop app: options as side-by-side cards and the amber Your call box" width="98%">
+</p>
+
+> [!NOTE]
+> **Status: alpha.** Everything in v0.1 is built and covered by 62 tests, and `claude plugin validate` passes. The hand check in VS Code and the Desktop app is still running. Watch or ⭐ the repo to follow along, and [open an issue](https://github.com/isAlmogK/margin-claude-mod/issues) if something looks off.
+
+## Why I'm building this
+
+I run Claude Code in the VS Code side panel all day. When a task finishes, the reply is a wall of grey text in a column a third of the screen wide. And the one thing I need from it later, the URL of the server it started, the test login, the command to run, a decision it's waiting on, sits in the middle of a paragraph. Twenty minutes later I'm scrolling up through the whole chat to find it.
+
+Themes change the colours, not the shape of the text. Nothing in Claude Code keeps the important bits of a chat where you can find them.
+
+| | Easier to read | Keeps what you need | Finds it again |
+|---|---|---|---|
+| Scrolling up | ❌ | ❌ | ◐ if you remember roughly where |
+| Asking Claude again | ◐ | ❌ | ◐ costs a turn, may get it wrong |
+| A notes file you keep yourself | ❌ | ✅ if you copy it there | ✅ |
+| **margin** | ✅ **answer first, short blocks, cards** | ✅ **Keep card and Pins tab** | ✅ **search over pins and the chat** |
+
+## How it works
 
 ```
-/plugin install margin --marketplace isAlmogK/claude-margin
+a note asks Claude to answer first and mark keepers ─▶ margin draws the reply ─▶ keepers go to Pins ─▶ you search and copy
 ```
 
-From a shell:
+| | What it does |
+|---|---|
+| 📝 **Note** | One short note in Claude's instructions (about 145 words per chat): lead with the answer, keep paragraphs short, and put choices, questions and things worth keeping in `options`, `ask` and `keep` blocks |
+| 🖋️ **Reply** | Draws every reply in margin's style. Anything it doesn't style (tables, HTML) is drawn by Claude Code's own Markdown, so a reply is never blank. If drawing fails, the normal drawing takes over |
+| 📌 **Keep** | Items from the reply's `keep` block go to the Keep card and to Pins. With no `keep` block, margin still pins a local app URL and a test password it finds |
+| 🔍 **Pins and search** | One Pins tab per project folder, shared by every chat in it. Type to search your pins and the whole current chat |
 
-```bash
-claude plugin install margin --marketplace isAlmogK/claude-margin
-```
+Claude marks things with three fenced blocks, which margin draws as cards:
 
-In the desktop app: click + next to the prompt box, then Plugins, Add marketplace with `isAlmogK/claude-margin`, then Add plugin.
-
-**Turn off other mods that draw replies first**, such as cc-stretch. Two mods drawing the same reply conflict:
-
-```bash
-claude plugin disable cc-stretch@cc-stretch
-```
-
-## Commands
-
-| Command | Does |
-| --- | --- |
-| `/pin Label: value` | Pins a value with a label. Plain text gets the label `Note`. |
-| `/pin` | Keeps the last reply's items for good. |
-| `/margin` | Opens the Pins tab. |
-| `/margin off` · `/margin on` | Turns the reply drawing and the note to Claude off or on. Pins keep working. |
-
-## How Claude marks things
-
-margin adds a short note to Claude's instructions asking it to answer first and to use three fenced blocks, which margin draws as cards:
-
+````text
 ```options
-Firebase functions | Matches what you have
-+ Trigger on both collections
+Background jobs | Matches what you have
++ Runs on every write
 - A bulk edit of 4 items shows as 4 entries
 
 Backend writes them | As planned | lean
@@ -56,38 +74,163 @@ Backend writes them | As planned | lean
 ```
 
 ```ask
-Which do you want: functions or backend?
+Which do you want: jobs or backend?
 ```
 
 ```keep
 App: http://localhost:5199
 Password: demo-password-1
 ```
+````
 
-## What margin can reach
+## Install
 
-- Claude's replies in the current chat, to draw them and to search them.
-- Its own storage on your computer: your pins, per project folder, and the on/off setting.
-- One note added to Claude's instructions, about 145 words per chat.
+In Claude Code:
 
-No network access, and nothing is written to your project. Values that look like real keys or tokens are never pinned automatically.
+```
+/plugin marketplace add isAlmogK/margin-claude-mod
+/plugin install margin@margin
+```
 
-## Works in
+In the Desktop app you can also click **+** next to the prompt box, then **Plugins**, add the marketplace `isAlmogK/margin-claude-mod`, and add `margin`.
 
-| Surface | |
-| --- | --- |
-| VS Code | Everything |
-| Claude desktop app | Everything |
+> [!IMPORTANT]
+> **Turn off other mods that draw replies first**, such as cc-stretch. Two mods drawing the same reply conflict.
+>
+> ```bash
+> claude plugin disable cc-stretch@cc-stretch
+> ```
+
+**From source:**
+
+```bash
+git clone https://github.com/isAlmogK/margin-claude-mod.git
+claude --plugin-dir margin-claude-mod
+```
+
+## What you see
+
+**The reply.** The answer first, as one brighter line. Short paragraphs with space between them and a capped line length. `###` headings become small labels. Inline code becomes chips, numbered steps keep their own numbers, and file links show just the file name. Choices from an `options` block become cards side by side when there's room and stacked when there isn't, with downsides in amber and Claude's pick marked. A question from an `ask` block sits in an amber **Your call** box at the end.
+
+**The Keep card.** A green card at the top of a finished reply, one row per item, each with **Copy**. It's drawn only once the reply's `keep` block has closed, so you never see half a card while Claude is still writing.
+
+**The Pins tab.** It sits above the prompt and stays folded to one row with a count. The first time a chat keeps something, it opens on its own and folds again when you send your next message. Open, it has a search box and each pin as `Label  value  Copy`, with **Keep** on pins that would expire and **Unpin** on all of them. Values that look like keys show as `••••` until you click **Show**.
+
+**Search.** Type in the Pins tab to search your pins and every message in the current chat, newest first. Each hit says where it came from (`pin`, `reply 14`, `you 3`) and has **Copy** for the whole line.
+
+## Commands
+
+| Command | Does |
+|---|---|
+| `/pin Label: value` | Pins a value with a label. Plain text gets the label `Note` |
+| `/pin` | Keeps the last reply's items for good |
+| `/margin` | Opens the Pins tab |
+| `/margin off` · `/margin on` | Turns the reply drawing and the note to Claude off or on, kept across sessions. Pins and `/pin` keep working |
+
+Pins Claude makes last 24 hours. Pins you add, or keep with **Keep** or `/pin`, stay until you remove them. A new pin with the same label replaces the old one, so the `App` pin follows your app to its new port.
+
+## Privacy
+
+Everything stays on your machine. margin makes no network calls and never writes to your project.
+
+**What margin reads:** Claude's replies and your messages in the current chat, to draw them and to search them.
+
+**What margin stores:** your pins, per project folder, and the on/off setting, in Claude Code's local mod store.
+
+**What margin adds:** one note to Claude's instructions, about 145 words per chat. `/margin off` removes it.
+
+**Keys and tokens are never pinned automatically.** Values that look like real credentials (`sk-…`, `ghp_…`, `AKIA…`, JWTs, PEM blocks, long random strings) are dropped from Claude's `keep` items and the pattern check. If you pin one yourself, it's shown as `••••` until you click **Show**, and search masks them in chat hits too.
+
+## Requirements
+
+- Claude Code v2.1.309 or later.
+
+| Surface | What works |
+|---|---|
+| VS Code extension | Everything. The main target |
+| Claude Desktop app (Code tab) | Everything |
 | Terminal | Everything; one text size, so the answer line is bold instead of larger |
 | Mobile | Replies and pins; no search box |
 
 Not to be confused with `margins`, a different plugin.
 
-## Developing
+## FAQ
+
+<details>
+<summary><b>Does it change what Claude says?</b></summary>
+
+Only the shape. The note asks Claude to lead with the answer, keep paragraphs short, and use the `options`, `ask` and `keep` blocks. It doesn't change what Claude does or which tools it uses. `/margin off` removes the note and the drawing.
+</details>
+
+<details>
+<summary><b>Does it work with cc-stretch or other mods that redraw replies?</b></summary>
+
+No. Only one mod can draw a reply's content, so turn the others off first. margin doesn't detect them for you.
+</details>
+
+<details>
+<summary><b>What if a reply has something margin can't draw?</b></summary>
+
+Tables, HTML and lists nested deeper than two levels go to Claude Code's own Markdown drawing, in place, between margin's blocks. If margin's drawing fails for any reason, that reply falls back to the normal drawing. A reply is never blank.
+</details>
+
+<details>
+<summary><b>Where do pins live, and who sees them?</b></summary>
+
+In Claude Code's local mod store on your machine, under your project folder. Every chat in that folder sees the same pins. Nobody else does, and they never sync between computers.
+</details>
+
+<details>
+<summary><b>Does it slow Claude down?</b></summary>
+
+No. Drawing happens as the reply streams in, and pins are saved after the turn ends. The note adds about 145 words to each chat's instructions.
+</details>
+
+## Roadmap
+
+| Phase | Scope | State |
+|---|---|---|
+| v0.1 | Reply drawing, `options`, `ask` and `keep` blocks, Keep card, Pins tab per project, search over pins and the chat, `/pin`, `/margin` | ✅ Built |
+| Launch | Hand check in VS Code and the Desktop app, screenshots, first release | 🚧 In progress |
+| Later | Search across the project's other chats, editing a pin, detecting other mods that draw replies | Planned |
+
+## Docs
+
+- 📘 [How it works today](docs/margin.md): the pieces, pin rules, the peek and the engine rules as the code stands
+- 🧭 [Design spec](docs/superpowers/specs/2026-10-27-margin-design.md): the why, the decisions and the behaviour, with an "As built" section
+- 🗂️ [Implementation plan](docs/superpowers/plans/2026-10-27-margin.md): the task-by-task plan it was built from
+
+margin is built test first, largely by AI agents working from written specs and plans, with every task reviewed before it merges. Read [CLAUDE.md](CLAUDE.md) before changing it. Issues and ideas are welcome.
+
+## Contributing
 
 ```bash
-claude plugin test .
-claude plugin validate .
+claude plugin test .      # the whole test suite
+claude plugin validate .  # the manifest and hooks module
 ```
 
-MIT license.
+Run both before every commit. To try a change, start Claude Code with `claude --plugin-dir <path to your clone>`.
+
+## Sponsor
+
+margin is free and open source, and I build it in my own time. If it saves you a scroll through a long chat, [sponsoring me on GitHub](https://github.com/sponsors/isAlmogK) keeps it maintained and moving down the [roadmap](#roadmap).
+
+## About me
+
+I'm Almog Koren, a software engineer in Tallinn with more than 15 years of shipping production software. I founded and built [DogBase](https://www.dogbase.co), a bootstrapped SaaS for working-dog teams that won the main pitch competition at Latitude59 2026, and before that I was co-founder and CTO of Platfarm, which was acquired. I took both companies through Techstars.
+
+These days I mostly build AI agents and the systems around them, and the tools I want while working with them. [trustbut](https://github.com/isAlmogK/trustbut) proves a change is actually tested, [Holdline](https://github.com/isAlmogK/holdline) proves it didn't break a business rule you approved, [Apprentice](https://github.com/isAlmogK/apprentice-claude-mod) makes sure you still understand it, and margin makes the conversation itself easier to read and to come back to. It came out of my own work: I kept scrolling up to find the login Claude gave me an hour ago.
+
+**I'm open to work:** full-time roles, fractional CTO work and AI agent projects. My CV and contact details are at [almog.io](https://almog.io).
+
+## License
+
+[MIT](LICENSE)
+
+---
+
+<div align="center">
+
+Built by **Almog Koren** · [almog.io](https://almog.io) · [@isAlmogK](https://github.com/isAlmogK). If margin saves you a scroll, a ⭐ helps others find it, and [sponsoring](https://github.com/sponsors/isAlmogK) helps keep it going.
+
+</div>

@@ -1,4 +1,4 @@
-# claude-margin
+# margin-claude-mod
 
 The `margin` mod for Claude Code. How it works today: [docs/margin.md](docs/margin.md).
 
