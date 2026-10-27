@@ -23,11 +23,13 @@ test('the note teaches the three fences', () => {
   expect(NOTE).toContain('```options')
   expect(NOTE).toContain('```ask')
   expect(NOTE).toContain('```keep')
-  expect(NOTE.split(/\s+/).length).toBeLessThan(170)
+  expect(NOTE.split(/\s+/).length).toBeLessThan(190)
 })
 
 test('the note asks for a keep line per takeaway, facts included', () => {
   const rule = NOTE.split('\n').find(line => line.includes('```keep')) ?? ''
   expect(rule).toContain('a number or fact')
   expect(rule).toContain('a line for each')
+  expect(rule).toContain('still open')
+  expect(rule).toContain('`- ` lines')
 })

@@ -11,7 +11,7 @@ export const NOTE = [
   '- Keep paragraphs to two or three sentences. Use ### headings as short section labels.',
   '- When you offer choices, put them in an ```options fence: one option per paragraph, its first line `Title | short subtitle`, adding `| lean` to the one you recommend, then `+ point` and `- downside` lines.',
   '- When the person needs to decide, put the question alone in an ```ask fence.',
-  '- End a reply that holds things worth keeping (a URL, a test login, a command to run, a decision, a number or fact the person asked for) with a ```keep fence: a line for each of them, `Label: value`, at most six lines. Each value should make sense on its own.',
+  '- End a reply that holds things worth keeping (a URL, a test login, a command to run, a decision, a number or fact the person asked for) with a ```keep fence: a line for each of them, `Label: value`, at most six lines. Each value should make sense on its own. Add what is still open (untested, unmerged, waiting on the person) as `- ` lines, at most three.',
   '- Never put a real API key, token or production password in a keep fence.',
 ].join('\n')
 
