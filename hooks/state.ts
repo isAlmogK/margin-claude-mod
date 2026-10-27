@@ -4,7 +4,7 @@ import type { EngineInterface, Register } from 'claude-code'
 export type On = Parameters<Register>[0]
 export type Engine = EngineInterface
 
-export const PANE = 'margin.pins'
+export const PANE = 'margin-pins'
 
 export const pinsAtom = atom({ plugin: 'margin', key: 'pins' } as const, [])
 export const queryAtom = atom({ plugin: 'margin', key: 'query' } as const, '')
