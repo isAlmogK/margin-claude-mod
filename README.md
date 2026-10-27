@@ -68,7 +68,7 @@ Password: demo-password-1
 
 - Claude's replies in the current chat, to draw them and to search them.
 - Its own storage on your computer: your pins, per project folder, and the on/off setting.
-- One note added to Claude's instructions, about 120 words per chat.
+- One note added to Claude's instructions, about 145 words per chat.
 
 No network access, and nothing is written to your project. Values that look like real keys or tokens are never pinned automatically.
 
