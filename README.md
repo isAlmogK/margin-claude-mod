@@ -35,7 +35,7 @@ No account, no server, no network access. It runs inside Claude Code and never w
 <p align="center"><sub>Illustrations drawn from margin's layout code. Screenshots from a live session replace them after the hand check.</sub></p>
 
 > [!NOTE]
-> **Status: alpha.** Everything in v0.2 is built and covered by 71 tests, and `claude plugin validate` passes. The hand check in VS Code and the Desktop app is still running. Watch or ⭐ the repo to follow along, and [open an issue](https://github.com/isAlmogK/margin-claude-mod/issues) if something looks off.
+> **Status: alpha.** Everything in v0.3 is built and covered by 79 tests, and `claude plugin validate` passes. The hand check in VS Code and the Desktop app is still running. Watch or ⭐ the repo to follow along, and [open an issue](https://github.com/isAlmogK/margin-claude-mod/issues) if something looks off.
 
 ## Why I'm building this
 
@@ -212,6 +212,7 @@ Replies that use `keep`, `options` or `ask` blocks spend a few dozen output toke
 |---|---|---|
 | v0.1 | Reply drawing, `options`, `ask` and `keep` blocks, Keep card, Pins tab per project, search over pins and the chat, `/pin`, `/margin` | ✅ Built |
 | v0.2 | Only pins you choose (Pin on the Keep card), pin cards with their own color and a type glyph, full-width search | ✅ Released |
+| v0.3 | Full-width replies, a calmer Keep card (aligned columns, Copy and Pin on hover, a Still open section), a keep line per takeaway, token cost in the FAQ | ✅ Released |
 | Launch | Hand check in VS Code and the Desktop app, screenshots | 🚧 In progress |
 | Later | Search across the project's other chats, editing a pin, detecting other mods that draw replies | Planned |
 
