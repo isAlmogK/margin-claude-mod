@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Each pin shows a small glyph for what it is (↗ link, ❯ command, ✱ login or key, ✎ note) in its card's color, and the card's buttons sit on the right.
+- Each pin shows a small glyph for what it is (↗ link, ❯ command, ✱ login or key, ✎ note) in its card's color, and the card's buttons sit under the value in the bottom right corner.
 - Each pin card has its own border color from your theme, and a pin keeps its color for good. Search results stay gray.
 - Only pins you choose. A reply's keep items are offered on its Keep card with **Pin**; nothing is pinned and the Pins tab never opens on its own. Pins no longer expire, so `Goes in Nh` and **Keep** are gone. Old auto-pins nobody kept are dropped.
 - Pins are bordered cards with space between them: the label, the value, then quiet text buttons (Copy, Unpin).

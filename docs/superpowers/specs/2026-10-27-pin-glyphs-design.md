@@ -32,3 +32,4 @@ the action row; the glyph is in the card's color before the label; a search hit 
 ## As built
 
 - Command is `❯` and secret is `✱`, not `›` and `⚿`. Drawn at text size, `›` and `⚿` came out much smaller than `↗` and `✎`; `❯` and `✱` match their weight. `✱` also reads as a masked password.
+- The buttons on the right of the card were moved the same day to a row under the value, aligned to the card's bottom right corner: beside the text they crowded long values. Search hits match.

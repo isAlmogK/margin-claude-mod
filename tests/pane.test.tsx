@@ -73,18 +73,16 @@ const holds = (node: Drawn, key: string): boolean => walk(node).some(one => keyO
 
 const textOf = (node: Drawn): string[] => walk(node).flatMap(one => (one.children ?? []).filter((child): child is string => typeof child === 'string'))
 
-test('a pin card: glyph and label over the value on the left, its buttons on the right', async ($, on) => {
+test('a pin card: glyph and label, the value, then its buttons in the bottom right corner', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
   await startSession($)
   const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
   await ui.press({ key: 'open' })
   const card = walk(await ui.drawn()).find(node => keyOf(node) === 'pin-app')
-  expect(card?.props).toMatchObject({ flexDirection: 'row', justifyContent: 'space-between', borderStyle: 'round', paddingX: 1 })
-  const [text, actions] = (card?.children ?? []) as Drawn[]
-  expect(text?.props).toMatchObject({ flexDirection: 'column', flexGrow: 1, flexShrink: 1 })
-  expect(actions?.props).toMatchObject({ flexDirection: 'row', flexShrink: 0 })
-  const [title, value] = (text?.children ?? []) as Drawn[]
+  expect(card?.props).toMatchObject({ flexDirection: 'column', borderStyle: 'round', paddingX: 1 })
+  const [title, value, actions] = (card?.children ?? []) as Drawn[]
+  expect(actions?.props).toMatchObject({ flexDirection: 'row', alignSelf: 'flex-end' })
   expect(textOf(title as Drawn)).toEqual([PIN_GLYPHS.link, 'App'])
   const glyph = walk(title).find(node => (node.children ?? []).includes(PIN_GLYPHS.link))
   expect(glyph?.props?.color).toBe(pinColor('app'))
@@ -120,7 +118,7 @@ test('the cards sit apart, and no pin says when it goes', async ($, on) => {
   expect(await ui.findAll({ type: 'Text', text: /^Goes in/ })).toHaveLength(0)
   expect(await ui.find({ key: 'keep-app' })).toBeUndefined()
   const note = drawn.find(node => keyOf(node) === 'pin-note')
-  const noteTitle = (((note?.children ?? []) as Drawn[])[0]?.children ?? [])[0] as Drawn
+  const noteTitle = ((note?.children ?? []) as Drawn[])[0] as Drawn
   expect(textOf(noteTitle)).toEqual([PIN_GLYPHS.note, 'Note'])
   await ui.unmount()
 })
@@ -170,7 +168,7 @@ test('the search box spans the tab', async ($, on) => {
   await ui.unmount()
 })
 
-test('a search hit is a gray card with its text on the left and Copy on the right', async ($, on) => {
+test('a search hit is a gray card with Copy in the bottom right corner', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
   await startSession($)
@@ -178,10 +176,10 @@ test('a search hit is a gray card with its text on the left and Copy on the righ
   await ui.press({ key: 'open' })
   await ui.input({ key: 'q', text: 'staging', kind: 'change' })
   const card = walk(await ui.drawn()).find(node => keyOf(node) === 'hit-card-0')
-  expect(card?.props).toMatchObject({ flexDirection: 'row', justifyContent: 'space-between', borderStyle: 'round', borderColor: 'subtle', paddingX: 1 })
-  const [text, copy] = (card?.children ?? []) as Drawn[]
-  expect(text?.props).toMatchObject({ flexDirection: 'column', flexGrow: 1, flexShrink: 1 })
-  expect(holds(copy as Drawn, 'hit-0')).toBe(true)
+  expect(card?.props).toMatchObject({ flexDirection: 'column', borderStyle: 'round', borderColor: 'subtle', paddingX: 1 })
+  const actions = ((card?.children ?? []) as Drawn[])[2]
+  expect(actions?.props).toMatchObject({ flexDirection: 'row', alignSelf: 'flex-end' })
+  expect(holds(actions as Drawn, 'hit-0')).toBe(true)
   expect((await ui.find({ key: 'hit-0' }))?.props).toMatchObject({ plain: true, dimColor: true })
   await ui.unmount()
 })
