@@ -3,6 +3,7 @@ import type { Register } from 'claude-code'
 
 import { registerNote } from './note'
 import { loadPins } from './pins'
+import { registerReply } from './reply'
 import { loadSettings } from './settings'
 import { registerTurn } from './turn'
 
@@ -18,5 +19,6 @@ export const register: Register = on => {
   })
 
   registerNote(on)
+  registerReply(on)
   registerTurn(on)
 }
