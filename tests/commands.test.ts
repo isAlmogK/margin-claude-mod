@@ -26,6 +26,14 @@ test('/pin text: a labelled pin or a note, kept until removed', async ($, on) =>
   ])
 })
 
+test('/pin opens the Pins tab', async ($, on) => {
+  const fake = fakeEngine(on)
+  await startSession($)
+  expect(fake.opened).toEqual([])
+  await runCommand($, 'pin', 'Note text')
+  expect(fake.opened).toContain('margin-pins')
+})
+
 test('/pin alone keeps the last reply\'s items for good', async ($, on) => {
   const fake = fakeEngine(on)
   await startSession($)

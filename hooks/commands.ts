@@ -28,11 +28,13 @@ export const registerCommands = (on: On): void => {
     if (e.args.trim() !== '') {
       const item = readPinArgs(e.args)
       await addItems($, [item], true)
+      await $.ui.open({ id: PANE, title: 'Pins' })
       return { text: `Pinned "${item.label}".` }
     }
     const items = await read($, lastKeepAtom)
     if (items.length === 0) return { text: 'The last reply had nothing to keep. Try /pin Label: value.' }
     await addItems($, items, true)
+    await $.ui.open({ id: PANE, title: 'Pins' })
     return { text: `Kept ${items.length} pins from the last reply.` }
   })
 

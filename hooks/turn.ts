@@ -22,9 +22,12 @@ export const registerTurn = (on: On): void => {
     await addItems($, items, false)
     if (!(await read($, hasPeekedAtom))) {
       await update($, hasPeekedAtom, () => true)
-      await update($, isPeekAtom, () => true)
-      await update($, isOpenAtom, () => true)
-      await $.ui.open({ id: PANE, title: 'Pins' })
+      // A tab you already opened stays yours: no peek, so your next message does not fold it.
+      if (!(await read($, isOpenAtom))) {
+        await update($, isPeekAtom, () => true)
+        await update($, isOpenAtom, () => true)
+        await $.ui.open({ id: PANE, title: 'Pins' })
+      }
     }
     return done
   })

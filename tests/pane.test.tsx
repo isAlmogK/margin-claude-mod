@@ -2,7 +2,7 @@ import { expect, test } from 'claude-code/testing'
 
 import { DAY, storeKey } from '../hooks/pins'
 import type { MarginPin } from '../types'
-import { type Fake, fakeEngine, finishTurn, PROJECT, startSession, submit } from './kit'
+import { type Fake, fakeEngine, finishTurn, PROJECT, runCommand, startSession, submit } from './kit'
 import { SERVER_REPLY } from './samples'
 
 const PANE = {
@@ -110,6 +110,17 @@ test('opening the tab yourself ends the peek', async ($, on) => {
   await ui.press({ key: 'fold' })
   await ui.press({ key: 'open' })
   await submit($, 'next')
+  expect(await ui.find({ key: 'fold' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('the first peek leaves a tab you opened yourself open', async ($, on) => {
+  fakeEngine(on)
+  await startSession($)
+  await runCommand($, 'margin')
+  await finishTurn($, SERVER_REPLY)
+  await submit($, 'thanks')
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
   expect(await ui.find({ key: 'fold' })).toBeDefined()
   await ui.unmount()
 })
