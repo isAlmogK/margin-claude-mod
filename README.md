@@ -61,7 +61,7 @@ a note asks Claude to answer first and mark keepers ─▶ margin draws the repl
 
 | | What it does |
 |---|---|
-| 📝 **Note** | One short note in Claude's instructions (about 145 words per chat): lead with the answer, keep paragraphs short, and put choices, questions and things worth keeping in `options`, `ask` and `keep` blocks |
+| 📝 **Note** | One short note in Claude's instructions (about 165 words, about 215 tokens): lead with the answer, keep paragraphs short, and put choices, questions and things worth keeping in `options`, `ask` and `keep` blocks |
 | 🖋️ **Reply** | Draws every reply in margin's style. Anything it doesn't style (tables, HTML) is drawn by Claude Code's own Markdown, so a reply is never blank. If drawing fails, the normal drawing takes over |
 | 📌 **Keep** | Items from the reply's `keep` block go on the Keep card, each with **Copy** and **Pin**. With no `keep` block there's no card, but `/pin` alone (with no text selected) can still pin a local app URL and a test password from the last reply. Nothing is pinned until you choose it |
 | 🔍 **Pins and search** | One Pins tab per project folder, shared by every chat in it. Type to search your pins and the whole current chat |
@@ -115,7 +115,7 @@ claude --plugin-dir margin-claude-mod
 
 ## What you see
 
-**The reply.** The answer first, as one brighter line. Short paragraphs with space between them and a capped line length. `###` headings become small labels. Inline code becomes chips, numbered steps keep their own numbers, and file links show just the file name. Choices from an `options` block become cards side by side when there's room and stacked when there isn't, with downsides in amber and Claude's pick marked. A question from an `ask` block sits in an amber **Your call** box at the end.
+**The reply.** The answer first, as one brighter line. Short paragraphs with space between them, filling the width of the panel. `###` headings become small labels. Inline code becomes chips, numbered steps keep their own numbers, and file links show just the file name. Choices from an `options` block become cards side by side when there's room and stacked when there isn't, with downsides in amber and Claude's pick marked. A question from an `ask` block sits in an amber **Your call** box at the end.
 
 **The Keep card.** A green card at the top of a finished reply, one row per item, each with quiet **Copy** and **Pin** buttons. Pin adds the item to your Pins, and the row then says `Pinned`. It's drawn only once the reply's `keep` block has closed, so you never see half a card while Claude is still writing.
 
@@ -142,7 +142,7 @@ Everything stays on your machine. margin makes no network calls and never writes
 
 **What margin stores:** your pins, per project folder, and the on/off setting, in Claude Code's local mod store.
 
-**What margin adds:** one note to Claude's instructions, about 145 words per chat. `/margin off` removes it.
+**What margin adds:** one note to Claude's instructions, about 165 words (about 215 tokens). `/margin off` removes it.
 
 **Nothing is pinned automatically, and keys never reach the Keep card.** Values that look like real credentials (`sk-…`, `ghp_…`, `AKIA…`, JWTs, PEM blocks, long random strings) are dropped from Claude's `keep` items and the pattern check. If you pin one yourself, it's shown as `••••` until you click **Show**, and search masks them in chat hits too.
 
@@ -194,7 +194,15 @@ In Claude Code's local mod store on your machine, under your project folder. Eve
 <details>
 <summary><b>Does it slow Claude down?</b></summary>
 
-No. Drawing happens as the reply streams in, and a reply's keep items are read after the turn ends. The note adds about 145 words to each chat's instructions.
+No. Drawing happens as the reply streams in, and a reply's keep items are read after the turn ends.
+</details>
+
+<details>
+<summary><b>What does it cost in tokens?</b></summary>
+
+Very little. The note is about 215 tokens in Claude's instructions. Like the rest of the system prompt it's sent with every request, but it never changes during a chat, so after the first request it's read from the prompt cache at about a tenth of the price: around 20 tokens' worth per request. It takes up those 215 tokens of the context window once and doesn't grow as the chat does.
+
+Replies that use `keep`, `options` or `ask` blocks spend a few dozen output tokens on them. Drawing, pins and search run on your machine and cost nothing. margin adds no tools and makes no model calls of its own. `/margin off` removes the note.
 </details>
 
 ## Roadmap

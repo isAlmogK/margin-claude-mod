@@ -25,3 +25,9 @@ test('the note teaches the three fences', () => {
   expect(NOTE).toContain('```keep')
   expect(NOTE.split(/\s+/).length).toBeLessThan(170)
 })
+
+test('the note asks for a keep line per takeaway, facts included', () => {
+  const rule = NOTE.split('\n').find(line => line.includes('```keep')) ?? ''
+  expect(rule).toContain('a number or fact')
+  expect(rule).toContain('a line for each')
+})

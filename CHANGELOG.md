@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Replies fill the whole panel instead of stopping at 76 columns.
+- The Keep card gets a line for each takeaway in a reply, numbers and facts included, not just URLs, logins and commands.
+- The README has a token cost FAQ.
 
 ## 0.2.0 (2026-10-27)
 

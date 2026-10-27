@@ -8,7 +8,7 @@ Current truth for the `margin` mod. The design and its history: [the spec](super
 | --- | --- |
 | `hooks/register.tsx` | Wires everything. The one `session.start` hook: project folder, settings, pins, commands, and the Pins tab if the project has pins. |
 | `hooks/state.ts` | The shared types (`On`, `Engine`) and `PANE` (`margin-pins`, the Pins tab id). It holds no state: each file declares its own state references (see Engine rules). |
-| `hooks/note.ts` | Adds `NOTE` to the system prompt (`prompt.compose`, `scope: 'session'`) unless margin is off. |
+| `hooks/note.ts` | Adds `NOTE` to the system prompt (`prompt.compose`, `scope: 'session'`) unless margin is off. Its keep rule asks for a line per takeaway, numbers and facts included, each value readable on its own. |
 | `hooks/blocks.ts` | Reads reply markdown into blocks. Windows (CRLF) line endings are normalised. A fence is a run of three or more backticks and closes only on a run of the same length; its info string holds no backtick and its first word is the language. A fence indented under a list item is its own code block. Open fences are `pending`; tables, HTML, quotes, three-level lists and unreadable `options` are `other`. |
 | `hooks/reply.tsx` | Draws `AssistantMessage`. The reply fills the panel (`width="100%"`); options sit side by side from 70 columns (`WIDE_MIN`). `other` goes to `Markdown`; a summary, margin off, or a throw goes to the normal drawing. Lists keep each item's own number, two levels (the second indented), and loose lists (blank lines between items) stay one list. Links to `http:`, `https:` and `file:` are drawn as links; any other target shows only its label. The Keep card has a row per item with plain dim **Copy** and **Pin**; an item already pinned (same label and value) shows a dim `Pinned` instead of Pin. Pin opens the Pins tab as it was, folded or open. |
 | `hooks/keep.ts` | Keep items from the `keep` fence; with no fence, an app URL on `localhost`, `127.0.0.1` or `0.0.0.0` with a port, and a password value. Secrets dropped. These are only offered: nothing is pinned until you press Pin or run `/pin` alone. |
@@ -22,7 +22,7 @@ Current truth for the `margin` mod. The design and its history: [the spec](super
 
 ## Token cost
 
-The only thing margin sends the model is `NOTE` (`hooks/note.ts`): about 190 tokens, added once as a session-scoped system prompt section, so it is cached after the first request. Replies that use `keep`, `options` or `ask` fences spend a few dozen output tokens on them. Drawing, pins and search run locally and cost no tokens; margin registers no tools and makes no model calls.
+The only thing margin sends the model is `NOTE` (`hooks/note.ts`): about 165 words, about 215 tokens, as a session-scoped system prompt section. It goes with every request, like the rest of the system prompt, but it does not change during a session, so after the first request it is a cache read (about a tenth of the input price). It occupies its tokens of context once. Replies that use `keep`, `options` or `ask` fences spend a few dozen output tokens on them. Drawing, pins and search run locally; margin registers no tools and makes no model calls.
 
 ## Pin rules
 
