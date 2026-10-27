@@ -25,4 +25,5 @@ export const entropy = (text: string): number => {
 
 export const isSecret = (value: string): boolean =>
   PATTERNS.some(pattern => pattern.test(value)) ||
-  value.split(/\s+/).some(word => word.length >= 32 && TOKEN_CHARS.test(word) && entropy(word) >= 4)
+  // A word with two or more slashes is a path, not a token.
+  value.split(/\s+/).some(word => word.length >= 32 && TOKEN_CHARS.test(word) && (word.match(/\//g)?.length ?? 0) < 2 && entropy(word) >= 4)

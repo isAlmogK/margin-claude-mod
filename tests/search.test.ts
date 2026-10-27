@@ -43,3 +43,22 @@ test('long lines are cut around the match', () => {
   expect(cut).toContain('staging')
   expect(cut.length).toBe(82)
 })
+
+test('rows with no text and tool-result rows are not numbered', () => {
+  const rows = [
+    { role: 'user' as const, text: 'deploy staging please' },
+    { role: 'assistant' as const, text: '' },
+    { role: 'user' as const, text: 'staging tool output', toolResults: [{}] },
+    { role: 'user' as const, text: '' },
+    { role: 'assistant' as const, text: 'Staging is up.' },
+    { role: 'user' as const, text: 'and staging logs?' },
+  ]
+  expect(searchChat(rows, [], 'staging').map(hit => hit.where)).toEqual(['you 2', 'reply 1', 'you 1'])
+})
+
+test('a secret in the chat shows as dots; Copy keeps the raw line', () => {
+  const key = ['gh', 'p_', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78'].join('')
+  const [hit] = searchChat([{ role: 'user', text: `/pin Token: ${key}` }], [], 'token')
+  expect(hit?.text).toBe('/pin Token: ••••')
+  expect(hit?.copy).toBe(`/pin Token: ${key}`)
+})

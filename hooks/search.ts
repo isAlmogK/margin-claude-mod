@@ -1,6 +1,7 @@
 import type { MarginPin } from '../types'
+import { isSecret } from './secrets'
 
-export type ChatMessage = { role: 'user' | 'assistant'; text: string }
+export type ChatMessage = { role: 'user' | 'assistant'; text: string; toolResults?: readonly unknown[] }
 export type SearchHit = { text: string; where: string; copy: string }
 
 export const SEARCH_LIMIT = 20
@@ -27,12 +28,15 @@ export const searchChat = (
     .filter(pin => (pin.secret ? pin.label : `${pin.label} ${pin.value}`).toLowerCase().includes(q))
     .map(pin => ({ text: `${pin.label}: ${pin.secret ? '••••' : pin.value}`, where: 'pin', copy: pin.value }))
 
+  // Only messages you or Claude wrote are numbered: rows with no text and tool-result rows are not.
+  const written = messages.filter(message => message.text.trim() !== '' && !(message.role === 'user' && (message.toolResults?.length ?? 0) > 0))
   const counts = { user: 0, assistant: 0 }
-  const numbered = messages.map(message => ({ ...message, n: (counts[message.role] += 1) }))
+  const numbered = written.map(message => ({ ...message, n: (counts[message.role] += 1) }))
   for (const message of numbered.reverse()) {
     for (const line of message.text.split('\n')) {
       if (!line.toLowerCase().includes(q)) continue
-      hits.push({ text: excerpt(line, q), where: `${message.role === 'assistant' ? 'reply' : 'you'} ${message.n}`, copy: line.trim() })
+      const shown = line.replace(/\S+/g, word => (isSecret(word) ? '••••' : word))
+      hits.push({ text: excerpt(shown, q), where: `${message.role === 'assistant' ? 'reply' : 'you'} ${message.n}`, copy: line.trim() })
     }
   }
   return hits.slice(0, limit)

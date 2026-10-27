@@ -23,6 +23,7 @@ const PLAIN = [
   'pkill -f dev-server.mjs',
   '3f786850e387550fdab836ed7e6dc881de23001b',
   'Inventory feed: backend writes it',
+  '/Users/me/projects/claude-margin/hooks',
 ]
 
 test('real-looking keys are secrets', () => {
