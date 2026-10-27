@@ -63,7 +63,7 @@ a note asks Claude to answer first and mark keepers ─▶ margin draws the repl
 |---|---|
 | 📝 **Note** | One short note in Claude's instructions (about 145 words per chat): lead with the answer, keep paragraphs short, and put choices, questions and things worth keeping in `options`, `ask` and `keep` blocks |
 | 🖋️ **Reply** | Draws every reply in margin's style. Anything it doesn't style (tables, HTML) is drawn by Claude Code's own Markdown, so a reply is never blank. If drawing fails, the normal drawing takes over |
-| 📌 **Keep** | Items from the reply's `keep` block go on the Keep card, each with **Copy** and **Pin**. With no `keep` block, `/pin` alone can still pin a local app URL and a test password it finds. Nothing is pinned until you choose it |
+| 📌 **Keep** | Items from the reply's `keep` block go on the Keep card, each with **Copy** and **Pin**. With no `keep` block there's no card, but `/pin` alone (with no text selected) can still pin a local app URL and a test password from the last reply. Nothing is pinned until you choose it |
 | 🔍 **Pins and search** | One Pins tab per project folder, shared by every chat in it. Type to search your pins and the whole current chat |
 
 Claude marks things with three fenced blocks, which margin draws as cards:
