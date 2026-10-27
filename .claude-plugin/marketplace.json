@@ -1,0 +1,11 @@
+{
+  "name": "claude-margin",
+  "owner": { "name": "isAlmogK" },
+  "plugins": [
+    {
+      "name": "margin",
+      "source": "./",
+      "description": "Readable replies, pins and chat search for Claude Code, made for the VS Code side panel."
+    }
+  ]
+}
