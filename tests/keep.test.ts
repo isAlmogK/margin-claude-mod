@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { findKeep, fromKeepLines, fromPatterns } from '../hooks/keep'
+import { findKeep, fromKeepLines, fromPatterns, readKeep } from '../hooks/keep'
 import { NO_KEEP_REPLY, SERVER_REPLY } from './samples'
 
 test('a keep fence gives labelled items, backticks removed', () => {
@@ -32,4 +32,18 @@ test('a real-looking key never comes back', () => {
 
 test('the word password with no value-like word after it is not pinned', () => {
   expect(fromPatterns('Fill in the password field and press enter.')).toEqual([])
+})
+
+test('- lines are what is still open, three at most, apart from the six facts', () => {
+  const lines = ['A: 1', '- not checked in the app', 'B: 2', '-   ', '- waiting on review', '- c', '- d', 'C: 3']
+  expect(readKeep(lines)).toEqual({
+    items: ['A', 'B', 'C'].map((label, index) => ({ label, value: String(index + 1), source: 'claude' })),
+    open: ['not checked in the app', 'waiting on review', 'c'],
+  })
+  expect(fromKeepLines(lines).map(item => item.label)).toEqual(['A', 'B', 'C'])
+})
+
+test('a still-open line holding a key is dropped', () => {
+  const key = ['gh', 'p_', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78'].join('')
+  expect(readKeep([`- rotate ${key}`, '- merge the PR']).open).toEqual(['merge the PR'])
 })

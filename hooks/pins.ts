@@ -17,7 +17,7 @@ export const storeKey = (cwd: string): string => `pins:${cwd}`
 
 const matchKey = (pin: MarginPin): string => {
   const label = pin.label.toLowerCase()
-  return label === 'note' ? `note:${pin.value}` : label
+  return label === 'note' || label === 'still open' ? `${label}:${pin.value}` : label
 }
 
 // Newest first. A pin with the same match key replaces the old one, keeping its id.
