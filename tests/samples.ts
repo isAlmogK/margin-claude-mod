@@ -46,3 +46,13 @@ export const NO_KEEP_REPLY = lines(
 export const TABLE_REPLY = lines('Here are the ports.', '', '| App | Port |', '|---|---|', '| web | 5199 |')
 
 export const STREAMING_REPLY = lines('The app is running.', '', '```keep', 'App: http://localhost:5199')
+
+export const OPEN_REPLY = lines(
+  'The fix is pushed.',
+  '',
+  '```keep',
+  'PR: https://github.com/acme/app/pull/10',
+  'Cost per request: ~20 tokens',
+  '- Not checked in the app',
+  '```',
+)
