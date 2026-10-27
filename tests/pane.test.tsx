@@ -75,31 +75,50 @@ const walk = (node: unknown, seen: Drawn[] = []): Drawn[] => {
 const keyOf = (node: Drawn): unknown => node.key ?? node.props?.key
 const holds = (node: Drawn, key: string): boolean => walk(node).some(one => keyOf(one) === key)
 
-test('a pin is a card: label on top, then the value, then its buttons', async ($, on) => {
+const textOf = (node: Drawn): string[] => walk(node).flatMap(one => (one.children ?? []).filter((child): child is string => typeof child === 'string'))
+
+test('a pin is a bordered card: label row, then the value, then its actions', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
   await startSession($)
   const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
   await ui.press({ key: 'open' })
   const card = walk(await ui.drawn()).find(node => keyOf(node) === 'pin-app')
-  expect(card?.props?.flexDirection).toBe('column')
+  expect(card?.props).toMatchObject({ flexDirection: 'column', borderStyle: 'round', paddingX: 1 })
   const parts = (card?.children ?? []) as Drawn[]
-  expect(parts.map(part => part.type)).toEqual(['Text', 'Text', 'Box'])
-  expect(walk(parts[0]).some(node => (node.children ?? []).includes('App'))).toBe(true)
+  expect(parts.map(part => part.type)).toEqual(['Box', 'Text', 'Box'])
+  expect(parts[0]?.props).toMatchObject({ flexDirection: 'row', justifyContent: 'space-between' })
+  expect(textOf(parts[0] as Drawn)).toEqual(['App', 'Goes in 24h'])
   expect(holds(parts[2] as Drawn, 'copy-app')).toBe(true)
   expect(holds(parts[2] as Drawn, 'unpin-app')).toBe(true)
+  expect(holds(parts[2] as Drawn, 'keep-app')).toBe(true)
   await ui.unmount()
 })
 
-test('a pin from Claude says when it goes, and Keep is a dim control', async ($, on) => {
+test('the cards sit apart, and a permanent pin has no expiry caption', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
+  await startSession($)
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await ui.press({ key: 'open' })
+  const drawn = walk(await ui.drawn())
+  const list = drawn.find(node => node.type === 'Box' && ((node.children ?? []) as Drawn[]).some(child => keyOf(child) === 'pin-app'))
+  expect(list?.props).toMatchObject({ flexDirection: 'column', gap: 'lg' })
+  expect(await ui.findAll({ type: 'Text', text: /^Goes in/ })).toHaveLength(1)
+  const note = drawn.find(node => keyOf(node) === 'pin-note')
+  expect(textOf(((note?.children ?? []) as Drawn[])[0] as Drawn)).toEqual(['Note'])
+  await ui.unmount()
+})
+
+test('every action is a quiet text control', async ($, on) => {
   const fake = fakeEngine(on)
   seed(fake)
   await startSession($)
   const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
   await ui.press({ key: 'open' })
-  expect(await ui.find({ type: 'Text', text: /^Goes in 24h$/ })).toBeDefined()
-  expect((await ui.find({ key: 'keep-app' }))?.props.dimColor).toBe(true)
-  expect(await ui.findAll({ type: 'Text', text: /^Goes in/ })).toHaveLength(1)
+  for (const key of ['copy-app', 'unpin-app', 'keep-app', 'show-token', 'copy-note', 'unpin-note']) {
+    expect((await ui.find({ key }))?.props).toMatchObject({ plain: true, dimColor: true })
+  }
   await ui.unmount()
 })
 
@@ -110,7 +129,20 @@ test('the search box spans the tab', async ($, on) => {
   const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
   await ui.press({ key: 'open' })
   const wrap = walk(await ui.drawn()).find(node => node.type === 'Box' && ((node.children ?? []) as Drawn[]).some(child => keyOf(child) === 'q'))
-  expect(wrap?.props?.width).toBe('100%')
+  expect(wrap?.props).toMatchObject({ width: '100%', flexDirection: 'column', alignItems: 'stretch' })
+  await ui.unmount()
+})
+
+test('a search hit is a bordered card with a quiet Copy', async ($, on) => {
+  const fake = fakeEngine(on)
+  seed(fake)
+  await startSession($)
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  await ui.press({ key: 'open' })
+  await ui.input({ key: 'q', text: 'staging', kind: 'change' })
+  const card = walk(await ui.drawn()).find(node => keyOf(node) === 'hit-card-0')
+  expect(card?.props).toMatchObject({ flexDirection: 'column', borderStyle: 'round', paddingX: 1 })
+  expect((await ui.find({ key: 'hit-0' }))?.props).toMatchObject({ plain: true, dimColor: true })
   await ui.unmount()
 })
 

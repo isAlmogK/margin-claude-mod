@@ -58,7 +58,7 @@ export const registerPane = (on: On): void => {
       else $.ui.toast(PICK_FIRST)
     }
 
-    // Each pin and each hit is a card, left-aligned: its label on top, the text, then its buttons.
+    // Each pin and each hit is a bordered card: its label row, the text, then its quiet buttons.
     return (
       <Box flexDirection="column" alignItems="stretch" gap={1}>
         <Box flexDirection="row" gap={1}>
@@ -67,7 +67,8 @@ export const registerPane = (on: On): void => {
           <Button key="fold" plain label="Fold" onPress={() => { void update($, isPeekAtom, () => false); void update($, isOpenAtom, () => false) }} />
         </Box>
         {'Input' in elements ? (
-          <Box width="100%">
+          // A Box lays its children in a row by default, which leaves the Input at its own width.
+          <Box width="100%" flexDirection="column" alignItems="stretch">
             <elements.Input
               key="q"
               placeholder="Search pins and this chat"
@@ -81,31 +82,41 @@ export const registerPane = (on: On): void => {
         {query.trim() !== ''
           ? hits.length === 0
             ? <Text color="subtle">Nothing matches.</Text>
-            : hits.map((hit, index) => (
-                <Box key={`hit-card-${index}`} flexDirection="column" alignItems="flex-start">
-                  <Text size="caption" color="subtle">{hit.where}</Text>
-                  <Text>{hit.text}</Text>
-                  <Button key={`hit-${index}`} label="Copy" onPress={press => { void $.ui.copy({ text: hit.copy, surface: press.surface }) }} />
+            : (
+                <Box flexDirection="column" alignItems="stretch" gap="lg">
+                  {hits.map((hit, index) => (
+                    <Box key={`hit-card-${index}`} flexDirection="column" alignItems="flex-start" borderStyle="round" borderColor="subtle" paddingX={1}>
+                      <Text size="caption" color="subtle">{hit.where}</Text>
+                      <Text>{hit.text}</Text>
+                      <Button key={`hit-${index}`} plain dimColor label="Copy" onPress={press => { void $.ui.copy({ text: hit.copy, surface: press.surface }) }} />
+                    </Box>
+                  ))}
                 </Box>
-              ))
+              )
           : pins.length === 0
             ? <Text color="subtle">No pins yet. Select text and press Pin selection, or use /pin.</Text>
-            : pins.map(pin => {
-                const isHidden = pin.secret && !revealed.includes(pin.id)
-                return (
-                  <Box key={`pin-${pin.id}`} flexDirection="column" alignItems="flex-start">
-                    <Text weight="semibold">{pin.label}</Text>
-                    <Text mono>{isHidden ? '••••' : pin.value}</Text>
-                    <Box flexDirection="row" gap={1}>
-                      {isHidden ? <Button key={`show-${pin.id}`} label="Show" onPress={() => { void update($, revealedAtom, ids => [...ids, pin.id]) }} /> : null}
-                      <Button key={`copy-${pin.id}`} label="Copy" onPress={press => { void $.ui.copy({ text: pin.value, surface: press.surface }) }} />
-                      <Button key={`unpin-${pin.id}`} label="Unpin" onPress={() => { void savePins($, list => dropPin(list, pin.id)) }} />
-                      {pin.expiresAt === null ? null : <Text size="caption" color="subtle">{goesIn(pin.expiresAt, now)}</Text>}
-                      {pin.expiresAt === null ? null : <Button key={`keep-${pin.id}`} plain dimColor label="Keep" onPress={() => { void savePins($, list => keepPin(list, pin.id)) }} />}
-                    </Box>
-                  </Box>
-                )
-              })}
+            : (
+                <Box flexDirection="column" alignItems="stretch" gap="lg">
+                  {pins.map(pin => {
+                    const isHidden = pin.secret && !revealed.includes(pin.id)
+                    return (
+                      <Box key={`pin-${pin.id}`} flexDirection="column" alignItems="flex-start" borderStyle="round" borderColor="subtle" paddingX={1}>
+                        <Box flexDirection="row" justifyContent="space-between" width="100%" gap={1}>
+                          <Text weight="semibold">{pin.label}</Text>
+                          {pin.expiresAt === null ? null : <Text size="caption" color="subtle">{goesIn(pin.expiresAt, now)}</Text>}
+                        </Box>
+                        <Text mono>{isHidden ? '••••' : pin.value}</Text>
+                        <Box flexDirection="row" gap={2}>
+                          {isHidden ? <Button key={`show-${pin.id}`} plain dimColor label="Show" onPress={() => { void update($, revealedAtom, ids => [...ids, pin.id]) }} /> : null}
+                          <Button key={`copy-${pin.id}`} plain dimColor label="Copy" onPress={press => { void $.ui.copy({ text: pin.value, surface: press.surface }) }} />
+                          <Button key={`unpin-${pin.id}`} plain dimColor label="Unpin" onPress={() => { void savePins($, list => dropPin(list, pin.id)) }} />
+                          {pin.expiresAt === null ? null : <Button key={`keep-${pin.id}`} plain dimColor label="Keep" onPress={() => { void savePins($, list => keepPin(list, pin.id)) }} />}
+                        </Box>
+                      </Box>
+                    )
+                  })}
+                </Box>
+              )}
       </Box>
     )
   })
